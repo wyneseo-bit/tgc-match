@@ -86,8 +86,27 @@ create policy "users are readable by any signed-in user" on public.users
   for select using (auth.role() = 'authenticated');
 create policy "users can update own profile" on public.users
   for update using (auth.uid() = id);
-create policy "users can insert own profile" on public.users
-  for insert with check (auth.uid() = id);
+
+-- The users row is created by the handle_new_user trigger below (running as
+-- the table owner, bypassing RLS), not by a client-side insert: signUp()
+-- does not grant a session until the email is confirmed, so an
+-- authenticated-only insert policy would fail for unconfirmed signups.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.users (id, display_name)
+  values (new.id, coalesce(new.raw_user_meta_data->>'display_name', new.email));
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
 
 -- cards: public reference data, readable by anyone signed in, written only
 -- by the service role (seeding script), never by end users.

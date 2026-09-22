@@ -19,11 +19,11 @@ export default async function Home() {
       {user ? (
         <div className="flex flex-col items-center gap-3">
           <p className="text-sm text-zinc-500">Signed in as {user.email}</p>
+          <Link href="/cards" className="rounded bg-black px-4 py-2 text-white">
+            Search cards
+          </Link>
           <form action={signOut}>
-            <button
-              type="submit"
-              className="rounded bg-black px-4 py-2 text-white"
-            >
+            <button type="submit" className="text-sm underline">
               Log out
             </button>
           </form>
