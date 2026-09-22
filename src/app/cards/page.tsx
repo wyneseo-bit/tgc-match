@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { addToCollection } from "../collection/actions";
 
 type Card = {
   id: string;
@@ -16,6 +18,8 @@ export default function CardsPage() {
   const [cards, setCards] = useState<Card[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const [addingId, setAddingId] = useState<string | null>(null);
 
   async function search(q: string) {
     setQuery(q);
@@ -40,9 +44,27 @@ export default function CardsPage() {
     setStatus("idle");
   }
 
+  async function handleAdd(cardId: string) {
+    setAddingId(cardId);
+    const result = await addToCollection(cardId);
+    setAddingId(null);
+
+    if (!result.error) {
+      setAddedIds((prev) => new Set(prev).add(cardId));
+    } else {
+      setError(result.error);
+      setStatus("error");
+    }
+  }
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="mb-4 text-2xl font-semibold">Card search</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Card search</h1>
+        <Link href="/collection" className="text-sm underline">
+          My Collection
+        </Link>
+      </div>
 
       <input
         type="text"
@@ -75,6 +97,18 @@ export default function CardsPage() {
             <p className="text-xs text-zinc-500">
               {card.set_name} · #{card.card_number}
             </p>
+            <button
+              type="button"
+              disabled={addingId === card.id || addedIds.has(card.id)}
+              onClick={() => handleAdd(card.id)}
+              className="mt-1 rounded bg-black px-2 py-1 text-xs text-white disabled:opacity-50"
+            >
+              {addedIds.has(card.id)
+                ? "Added"
+                : addingId === card.id
+                  ? "Adding…"
+                  : "Add to collection"}
+            </button>
           </div>
         ))}
       </div>

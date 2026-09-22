@@ -8,6 +8,10 @@ export type PokemonTcgCard = {
   set?: { name?: string };
 };
 
+// pokemontcg.io is a free, community-run API that intermittently returns
+// 5xx errors under normal load — retry transient failures before giving up.
+const MAX_ATTEMPTS = 3;
+
 export async function searchPokemonCards(
   query: string,
 ): Promise<PokemonTcgCard[]> {
@@ -21,12 +25,21 @@ export async function searchPokemonCards(
     headers["X-Api-Key"] = process.env.POKEMONTCG_API_KEY;
   }
 
-  const res = await fetch(`${BASE_URL}/cards?${params}`, { headers });
+  let lastStatus = 0;
 
-  if (!res.ok) {
-    throw new Error(`pokemontcg.io request failed: ${res.status}`);
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const res = await fetch(`${BASE_URL}/cards?${params}`, { headers });
+
+    if (res.ok) {
+      const json = await res.json();
+      return json.data as PokemonTcgCard[];
+    }
+
+    lastStatus = res.status;
+    if (res.status < 500 || attempt === MAX_ATTEMPTS) break;
+
+    await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
   }
 
-  const json = await res.json();
-  return json.data as PokemonTcgCard[];
+  throw new Error(`pokemontcg.io request failed: ${lastStatus}`);
 }
