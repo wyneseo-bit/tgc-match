@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { CollectionRow, type CollectionItem } from "./CollectionRow";
+import { WantRow, type WantItem } from "./WantRow";
 
-export default async function CollectionPage() {
+export default async function WantsPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -14,24 +14,24 @@ export default async function CollectionPage() {
   }
 
   const { data, error } = await supabase
-    .from("collection")
+    .from("wants")
     .select(
-      "id, quantity, trade_status, card:cards(id, name, set_name, card_number, image_url)",
+      "id, priority, card:cards(id, name, set_name, card_number, image_url)",
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .returns<CollectionItem[]>();
+    .returns<WantItem[]>();
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">My Collection</h1>
+        <h1 className="text-2xl font-semibold">My Wants</h1>
         <div className="flex gap-4 text-sm">
           <Link href="/cards" className="underline">
             Search cards
           </Link>
-          <Link href="/wants" className="underline">
-            My Wants
+          <Link href="/collection" className="underline">
+            My Collection
           </Link>
         </div>
       </div>
@@ -50,7 +50,7 @@ export default async function CollectionPage() {
 
       <div className="flex flex-col divide-y">
         {data?.map((item) => (
-          <CollectionRow key={item.id} item={item} />
+          <WantRow key={item.id} item={item} />
         ))}
       </div>
     </main>

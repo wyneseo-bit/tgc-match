@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { addToCollection } from "../collection/actions";
+import { addToWants } from "../wants/actions";
 
 type Card = {
   id: string;
@@ -13,13 +14,20 @@ type Card = {
   image_url: string | null;
 };
 
+type AddKind = "collection" | "wants";
+
 export default function CardsPage() {
   const [query, setQuery] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
-  const [addingId, setAddingId] = useState<string | null>(null);
+  const [added, setAdded] = useState<Record<string, Set<string>>>({
+    collection: new Set(),
+    wants: new Set(),
+  });
+  const [pending, setPending] = useState<{ id: string; kind: AddKind } | null>(
+    null,
+  );
 
   async function search(q: string) {
     setQuery(q);
@@ -44,13 +52,19 @@ export default function CardsPage() {
     setStatus("idle");
   }
 
-  async function handleAdd(cardId: string) {
-    setAddingId(cardId);
-    const result = await addToCollection(cardId);
-    setAddingId(null);
+  async function handleAdd(cardId: string, kind: AddKind) {
+    setPending({ id: cardId, kind });
+    const result =
+      kind === "collection"
+        ? await addToCollection(cardId)
+        : await addToWants(cardId);
+    setPending(null);
 
     if (!result.error) {
-      setAddedIds((prev) => new Set(prev).add(cardId));
+      setAdded((prev) => ({
+        ...prev,
+        [kind]: new Set(prev[kind]).add(cardId),
+      }));
     } else {
       setError(result.error);
       setStatus("error");
@@ -61,9 +75,14 @@ export default function CardsPage() {
     <main className="mx-auto max-w-4xl px-4 py-12">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Card search</h1>
-        <Link href="/collection" className="text-sm underline">
-          My Collection
-        </Link>
+        <div className="flex gap-4 text-sm">
+          <Link href="/collection" className="underline">
+            My Collection
+          </Link>
+          <Link href="/wants" className="underline">
+            My Wants
+          </Link>
+        </div>
       </div>
 
       <input
@@ -97,18 +116,38 @@ export default function CardsPage() {
             <p className="text-xs text-zinc-500">
               {card.set_name} · #{card.card_number}
             </p>
-            <button
-              type="button"
-              disabled={addingId === card.id || addedIds.has(card.id)}
-              onClick={() => handleAdd(card.id)}
-              className="mt-1 rounded bg-black px-2 py-1 text-xs text-white disabled:opacity-50"
-            >
-              {addedIds.has(card.id)
-                ? "Added"
-                : addingId === card.id
-                  ? "Adding…"
-                  : "Add to collection"}
-            </button>
+            <div className="mt-1 flex gap-1">
+              <button
+                type="button"
+                disabled={
+                  (pending?.id === card.id && pending.kind === "collection") ||
+                  added.collection.has(card.id)
+                }
+                onClick={() => handleAdd(card.id, "collection")}
+                className="rounded bg-black px-2 py-1 text-xs text-white disabled:opacity-50"
+              >
+                {added.collection.has(card.id)
+                  ? "In collection"
+                  : pending?.id === card.id && pending.kind === "collection"
+                    ? "Adding…"
+                    : "+ Collection"}
+              </button>
+              <button
+                type="button"
+                disabled={
+                  (pending?.id === card.id && pending.kind === "wants") ||
+                  added.wants.has(card.id)
+                }
+                onClick={() => handleAdd(card.id, "wants")}
+                className="rounded border border-black px-2 py-1 text-xs disabled:opacity-50"
+              >
+                {added.wants.has(card.id)
+                  ? "In wants"
+                  : pending?.id === card.id && pending.kind === "wants"
+                    ? "Adding…"
+                    : "+ Wants"}
+              </button>
+            </div>
           </div>
         ))}
       </div>
