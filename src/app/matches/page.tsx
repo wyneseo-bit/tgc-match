@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { MatchedCard } from "@/lib/matching";
+import { ContactReveal } from "./ContactReveal";
 
 type MatchRow = {
   id: string;
@@ -150,6 +151,8 @@ export default async function MatchesPage() {
                   <CardList cards={iGet} cardById={cardById} />
                 </div>
               </div>
+
+              <ContactReveal matchId={m.id} />
             </div>
           );
         })}
