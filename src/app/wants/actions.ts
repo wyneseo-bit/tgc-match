@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { refreshMatchesForUser } from "@/lib/matching";
 
 async function requireUser() {
   const supabase = await createClient();
@@ -25,7 +26,9 @@ export async function addToWants(cardId: string) {
 
   if (error) return { error: error.message };
 
+  await refreshMatchesForUser(user.id);
   revalidatePath("/wants");
+  revalidatePath("/matches");
   return { error: null };
 }
 
@@ -55,6 +58,8 @@ export async function removeFromWants(id: string) {
 
   if (error) return { error: error.message };
 
+  await refreshMatchesForUser(user.id);
   revalidatePath("/wants");
+  revalidatePath("/matches");
   return { error: null };
 }

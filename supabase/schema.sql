@@ -67,7 +67,10 @@ create table if not exists public.matches (
   match_score numeric not null,
   matched_cards jsonb not null default '[]',
   created_at timestamptz not null default now(),
-  constraint matches_distinct_users check (user_a_id <> user_b_id)
+  constraint matches_distinct_users check (user_a_id <> user_b_id),
+  -- The matching engine always stores user_a_id < user_b_id (sorted), so
+  -- this also enforces uniqueness of the unordered pair and backs upserts.
+  constraint matches_unique_pair unique (user_a_id, user_b_id)
 );
 
 create index if not exists matches_user_a_idx on public.matches (user_a_id);

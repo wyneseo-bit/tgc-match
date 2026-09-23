@@ -33,6 +33,9 @@ export default async function WantsPage() {
           <Link href="/collection" className="underline">
             My Collection
           </Link>
+          <Link href="/matches" className="underline">
+            Matches
+          </Link>
         </div>
       </div>
 
