@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<svg viewBox="0 0 24 24" width="{{ size }}" height="{{ size }}" fill="none" stroke="{{ color }}" style="stroke-width:{{ sw }};stroke-linecap:round;stroke-linejoin:round;display:block;flex:none"><sc-for list="{{ paths }}" as="d" hint-placeholder-count="0"><path d="{{ d }}"></path></sc-for></svg>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:48,&quot;height&quot;:48},&quot;iconName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;sparkles&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:18,&quot;tsType&quot;:&quot;number&quot;},&quot;color&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#6C63FF&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;sw&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:2,&quot;tsType&quot;:&quot;number&quot;}}">
+const P = {
+  search: ["M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16z", "M21 21l-4.3-4.3"],
+  heart: ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"],
+  sparkles: ["M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.13-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.13a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.13 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z", "M20 3v4", "M22 5h-4"],
+  swap: ["M8 3 4 7l4 4", "M4 7h16", "m16 21 4-4-4-4", "M20 17H4"],
+  swapv: ["m21 16-4 4-4-4", "M17 20V4", "m3 8 4-4 4 4", "M7 4v16"],
+  library: ["m16 6 4 14", "M12 6v14", "M8 8v12", "M4 4v16"],
+  badge: ["M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z", "m9 12 2 2 4-4"],
+  pin: ["M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0", "M12 7a3 3 0 1 0 0 6a3 3 0 1 0 0-6z"],
+  message: ["M7.9 20A9 9 0 1 0 4 16.1L2 22Z"],
+  plus: ["M5 12h14", "M12 5v14"],
+  sliders: ["M4 21v-7", "M4 10V3", "M12 21v-9", "M12 8V3", "M20 21v-5", "M20 12V3", "M2 14h4", "M10 8h4", "M18 16h4"],
+  user: ["M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", "M12 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8z"],
+  users: ["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8z", "M22 21v-2a4 4 0 0 0-3-3.87", "M16 3.13a4 4 0 0 1 0 7.75"],
+  compass: ["M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20z", "m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"],
+  shield: ["M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z", "m9 12 2 2 4-4"],
+  check: ["M20 6 9 17l-5-5"],
+  chevron: ["m9 18 6-6-6-6"],
+  truck: ["M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2", "M15 18H9", "M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14", "M7 16a2 2 0 1 0 0 4a2 2 0 1 0 0-4z", "M17 16a2 2 0 1 0 0 4a2 2 0 1 0 0-4z"],
+  bell: ["M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9", "M10.3 21a1.94 1.94 0 0 0 3.4 0"],
+  clock: ["M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20z", "M12 6v6l4 2"],
+  lock: ["M5 11h14v10H5z", "M7 11V7a5 5 0 0 1 10 0v4"],
+  x: ["M18 6 6 18", "m6 6 12 12"],
+  arrow: ["M5 12h14", "m12 5 7 7-7 7"]
+};
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    return { paths: P[p.iconName ?? p.icon] || [], size: p.size ?? 18, color: p.color ?? "currentColor", sw: p.sw ?? 2 };
+  }
+}
+</script>
+</body>
+</html>

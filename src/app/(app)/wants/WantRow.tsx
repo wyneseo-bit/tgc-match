@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Image from "next/image";
+import { TcgCard } from "@/components/TcgCard";
 import { removeFromWants, updatePriority } from "./actions";
 
 type Card = {
@@ -26,20 +26,15 @@ export function WantRow({ item }: { item: WantItem }) {
   if (removed) return null;
 
   return (
-    <div className="flex items-center gap-4 py-3">
-      {item.card.image_url && (
-        <Image
-          src={item.card.image_url}
-          alt={item.card.name}
-          width={50}
-          height={70}
-          unoptimized
-        />
-      )}
+    <div
+      className="glass flex items-center gap-4 rounded-card p-4"
+      style={{ border: "1px solid var(--color-border)" }}
+    >
+      <TcgCard width={56} imageUrl={item.card.image_url} alt={item.card.name} />
 
-      <div className="flex-1">
-        <p className="font-medium">{item.card.name}</p>
-        <p className="text-xs text-zinc-500">
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold">{item.card.name}</p>
+        <p className="text-xs" style={{ color: "var(--color-muted)" }}>
           {item.card.set_name} · #{item.card.card_number}
         </p>
       </div>
@@ -53,7 +48,8 @@ export function WantRow({ item }: { item: WantItem }) {
             updatePriority(item.id, value);
           });
         }}
-        className="rounded border px-2 py-1 text-sm"
+        className="rounded-btn border border-border-strong px-2.5 py-1.5 text-sm text-text"
+        style={{ background: "var(--color-surface-2)" }}
       >
         <option value="low">Low</option>
         <option value="medium">Medium</option>
@@ -69,7 +65,8 @@ export function WantRow({ item }: { item: WantItem }) {
             removeFromWants(item.id);
           });
         }}
-        className="text-sm text-red-600 underline disabled:opacity-50"
+        className="text-sm underline disabled:opacity-50"
+        style={{ color: "var(--color-danger)" }}
       >
         Remove
       </button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Image from "next/image";
+import { TcgCard } from "@/components/TcgCard";
 import {
   removeFromCollection,
   updateQuantity,
@@ -23,6 +23,9 @@ export type CollectionItem = {
   card: Card;
 };
 
+const inputClass =
+  "rounded-btn border border-border-strong px-2.5 py-1.5 text-sm text-text";
+
 export function CollectionRow({ item }: { item: CollectionItem }) {
   const [tradeStatus, setTradeStatus] = useState(item.trade_status);
   const [quantity, setQuantity] = useState(item.quantity);
@@ -32,20 +35,15 @@ export function CollectionRow({ item }: { item: CollectionItem }) {
   if (removed) return null;
 
   return (
-    <div className="flex items-center gap-4 py-3">
-      {item.card.image_url && (
-        <Image
-          src={item.card.image_url}
-          alt={item.card.name}
-          width={50}
-          height={70}
-          unoptimized
-        />
-      )}
+    <div
+      className="glass flex items-center gap-4 rounded-card p-4"
+      style={{ border: "1px solid var(--color-border)" }}
+    >
+      <TcgCard width={56} imageUrl={item.card.image_url} alt={item.card.name} />
 
-      <div className="flex-1">
-        <p className="font-medium">{item.card.name}</p>
-        <p className="text-xs text-zinc-500">
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold">{item.card.name}</p>
+        <p className="text-xs" style={{ color: "var(--color-muted)" }}>
           {item.card.set_name} · #{item.card.card_number}
         </p>
       </div>
@@ -61,7 +59,8 @@ export function CollectionRow({ item }: { item: CollectionItem }) {
             updateQuantity(item.id, value);
           });
         }}
-        className="w-16 rounded border px-2 py-1 text-sm"
+        className={`w-16 ${inputClass}`}
+        style={{ background: "var(--color-surface-2)" }}
       />
 
       <select
@@ -73,7 +72,8 @@ export function CollectionRow({ item }: { item: CollectionItem }) {
             updateTradeStatus(item.id, value);
           });
         }}
-        className="rounded border px-2 py-1 text-sm"
+        className={inputClass}
+        style={{ background: "var(--color-surface-2)" }}
       >
         <option value="keep">Keep</option>
         <option value="maybe">Maybe</option>
@@ -90,7 +90,8 @@ export function CollectionRow({ item }: { item: CollectionItem }) {
             removeFromCollection(item.id);
           });
         }}
-        className="text-sm text-red-600 underline disabled:opacity-50"
+        className="text-sm underline disabled:opacity-50"
+        style={{ color: "var(--color-danger)" }}
       >
         Remove
       </button>

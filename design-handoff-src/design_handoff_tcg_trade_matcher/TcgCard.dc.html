@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="width:{{ w }}px;aspect-ratio:63/88;border-radius:{{ r }}px;padding:{{ pad }}px;box-sizing:border-box;background:{{ frame }};display:flex;flex-direction:column;gap:{{ pad }}px;font-family:Geist,sans-serif;font-size:{{ fs }}px;box-shadow:0 10px 30px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.12);flex:none;overflow:hidden;position:relative">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;color:#fff;font-weight:600;line-height:1.1;white-space:nowrap;overflow:hidden"><span style="overflow:hidden;text-overflow:ellipsis">{{ name }}</span><span style="opacity:0.7;font-weight:500">{{ code }}</span></div>
+<div style="flex:1 1 55%;border-radius:{{ ir }}px;background:{{ art }};position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18)">
+<div style="position:absolute;width:70%;aspect-ratio:1;border-radius:50%;left:15%;top:18%;background:radial-gradient(circle at 35% 35%, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg, transparent, rgba(0,0,0,0.35))"></div>
+</div>
+<div style="flex:0 0 26%;border-radius:{{ ir }}px;background:rgba(255,255,255,0.1);display:flex;flex-direction:column;justify-content:center;gap:0.45em;padding:0 0.7em">
+<div style="height:0.35em;width:85%;border-radius:99px;background:rgba(255,255,255,0.35)"></div>
+<div style="height:0.35em;width:60%;border-radius:99px;background:rgba(255,255,255,0.22)"></div>
+<div style="height:0.35em;width:72%;border-radius:99px;background:rgba(255,255,255,0.22)"></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:200,&quot;height&quot;:260},&quot;cardName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Umbreon VMAX&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;code&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;215&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;indigo&quot;,&quot;violet&quot;,&quot;cyan&quot;,&quot;coral&quot;,&quot;yellow&quot;,&quot;slate&quot;],&quot;default&quot;:&quot;indigo&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;w&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:140,&quot;tsType&quot;:&quot;number&quot;}}">
+const T = {
+  indigo: ["#2A2668", "linear-gradient(150deg,#8F88FF,#3B33B8)"],
+  violet: ["#3A2263", "linear-gradient(150deg,#C79BFF,#6A2FC4)"],
+  cyan:   ["#123F48", "linear-gradient(150deg,#8AF0F8,#1A8C99)"],
+  coral:  ["#5A2420", "linear-gradient(150deg,#FFC0A8,#E0503F)"],
+  yellow: ["#5C4614", "linear-gradient(150deg,#FFEBA6,#D9A11E)"],
+  slate:  ["#252B38", "linear-gradient(150deg,#B7BFD3,#4A5367)"]
+};
+class Component extends DCLogic {
+  renderVals() {
+    const w = this.props.w ?? 140;
+    const t = T[this.props.tone] || T.indigo;
+    return { w, r: Math.max(4, w * 0.05), ir: Math.max(2, w * 0.03), pad: Math.max(3, w * 0.045), fs: Math.max(6, w / 13),
+      frame: t[0], art: t[1], name: this.props.cardName ?? "Card name", code: this.props.code ?? "" };
+  }
+}
+</script>
+</body>
+</html>

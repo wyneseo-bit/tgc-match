@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import { Search } from "lucide-react";
+import { TcgCard } from "@/components/TcgCard";
 import { addToCollection } from "../collection/actions";
 import { addToWants } from "../wants/actions";
 
@@ -72,54 +72,46 @@ export default function CardsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Card search</h1>
-        <div className="flex gap-4 text-sm">
-          <Link href="/collection" className="underline">
-            My Collection
-          </Link>
-          <Link href="/wants" className="underline">
-            My Wants
-          </Link>
-          <Link href="/matches" className="underline">
-            Matches
-          </Link>
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-[30px] font-bold tracking-tight">Discover</h1>
+        <span className="text-sm" style={{ color: "var(--color-muted)" }}>
+          Search the Pokémon TCG catalog to build your collection and wants.
+        </span>
       </div>
 
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => search(e.target.value)}
-        placeholder="Search for a card, e.g. Pikachu"
-        className="w-full rounded border px-3 py-2"
-      />
+      <div
+        className="flex h-12 max-w-[420px] items-center gap-2.5 rounded-btn px-3.5"
+        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border-strong)" }}
+      >
+        <Search size={17} strokeWidth={2} color="var(--color-muted)" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => search(e.target.value)}
+          placeholder="Search for a card, e.g. Pikachu"
+          className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--color-muted)]"
+        />
+      </div>
 
       {status === "loading" && (
-        <p className="mt-4 text-sm text-zinc-500">Searching…</p>
+        <p className="text-sm" style={{ color: "var(--color-muted)" }}>Searching…</p>
       )}
       {status === "error" && (
-        <p className="mt-4 text-sm text-red-600">{error}</p>
+        <p className="text-sm" style={{ color: "var(--color-danger)" }}>{error}</p>
       )}
 
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {cards.map((card) => (
-          <div key={card.id} className="flex flex-col items-center text-center">
-            {card.image_url && (
-              <Image
-                src={card.image_url}
-                alt={card.name}
-                width={150}
-                height={210}
-                unoptimized
-              />
-            )}
-            <p className="mt-1 text-sm font-medium">{card.name}</p>
-            <p className="text-xs text-zinc-500">
-              {card.set_name} · #{card.card_number}
-            </p>
-            <div className="mt-1 flex gap-1">
+          <div key={card.id} className="flex flex-col items-center gap-2 text-center">
+            <TcgCard width={140} imageUrl={card.image_url} alt={card.name} />
+            <div>
+              <p className="text-sm font-semibold">{card.name}</p>
+              <p className="text-xs" style={{ color: "var(--color-muted)" }}>
+                {card.set_name} · #{card.card_number}
+              </p>
+            </div>
+            <div className="flex gap-1.5">
               <button
                 type="button"
                 disabled={
@@ -127,7 +119,7 @@ export default function CardsPage() {
                   added.collection.has(card.id)
                 }
                 onClick={() => handleAdd(card.id, "collection")}
-                className="rounded bg-black px-2 py-1 text-xs text-white disabled:opacity-50"
+                className="gradient-primary rounded-btn px-2.5 py-1.5 text-xs font-medium text-white disabled:opacity-50"
               >
                 {added.collection.has(card.id)
                   ? "In collection"
@@ -142,7 +134,8 @@ export default function CardsPage() {
                   added.wants.has(card.id)
                 }
                 onClick={() => handleAdd(card.id, "wants")}
-                className="rounded border border-black px-2 py-1 text-xs disabled:opacity-50"
+                className="rounded-btn border border-border-strong px-2.5 py-1.5 text-xs font-medium disabled:opacity-50"
+                style={{ background: "var(--color-surface-2)" }}
               >
                 {added.wants.has(card.id)
                   ? "In wants"
@@ -154,6 +147,6 @@ export default function CardsPage() {
           </div>
         ))}
       </div>
-    </main>
+    </div>
   );
 }
