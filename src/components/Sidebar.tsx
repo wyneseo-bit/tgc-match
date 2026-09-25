@@ -13,8 +13,10 @@ import {
   SlidersVertical,
   BadgeCheck,
   Plus,
+  LogOut,
 } from "lucide-react";
 import { Mascot, type MascotColor } from "./Mascot";
+import { signOut } from "@/app/login/actions";
 
 type NavItem = {
   label: string;
@@ -137,29 +139,41 @@ export function Sidebar({
 
       <div className="flex-1" />
 
-      <Link
-        href="/profile"
-        className="flex items-center gap-2.5 rounded-btn border border-border p-2.5"
+      <div
+        className="flex items-center gap-2 rounded-btn border border-border p-2.5"
         style={{ background: "var(--color-surface)" }}
       >
-        <div
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-semibold text-white"
-          style={{ background: "linear-gradient(135deg,#FF8A7A,#A66CFF)" }}
-        >
-          {displayName.charAt(0).toUpperCase()}
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="truncate text-[13px] font-semibold text-text">
-            {displayName}
-          </span>
-          {verified && (
-            <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--color-cyan)" }}>
-              <BadgeCheck size={12} strokeWidth={2} />
-              Identity Verified
+        <Link href="/profile" className="flex min-w-0 flex-1 items-center gap-2.5">
+          <div
+            className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-[13px] font-semibold text-white"
+            style={{ background: "linear-gradient(135deg,#FF8A7A,#A66CFF)" }}
+          >
+            {displayName.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="truncate text-[13px] font-semibold text-text">
+              {displayName}
             </span>
-          )}
-        </div>
-      </Link>
+            {verified && (
+              <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--color-cyan)" }}>
+                <BadgeCheck size={12} strokeWidth={2} />
+                Identity Verified
+              </span>
+            )}
+          </div>
+        </Link>
+        <form action={signOut}>
+          <button
+            type="submit"
+            className="flex h-7 w-7 flex-none items-center justify-center rounded-nav"
+            style={{ color: "var(--color-muted)" }}
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut size={15} strokeWidth={2} />
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
