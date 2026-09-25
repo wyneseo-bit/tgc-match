@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Search, Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/Sidebar";
+import { MobileNav } from "@/components/MobileNav";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -23,15 +24,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar
-        displayName={profile?.display_name ?? user.email ?? "Trader"}
-        verified={profile?.verified ?? false}
-        matchCount={matchCount ?? 0}
-      />
+      <div className="hidden md:block">
+        <Sidebar
+          displayName={profile?.display_name ?? user.email ?? "Trader"}
+          verified={profile?.verified ?? false}
+          matchCount={matchCount ?? 0}
+        />
+      </div>
       <div className="ambient-bg flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center gap-4 border-b border-border px-10 py-4">
+        <div className="flex items-center gap-4 border-b border-border px-4 py-4 sm:px-10">
           <div
-            className="flex h-11 max-w-[520px] flex-1 items-center gap-2.5 rounded-btn px-3.5"
+            className="hidden h-11 max-w-[520px] flex-1 items-center gap-2.5 rounded-btn px-3.5 sm:flex"
             style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
           >
             <Search size={17} strokeWidth={2} color="var(--color-muted)" />
@@ -41,7 +44,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
           <div className="flex-1" />
           <div
-            className="relative flex h-11 w-11 items-center justify-center rounded-btn border border-border"
+            className="relative flex h-11 w-11 flex-none items-center justify-center rounded-btn border border-border"
             style={{ background: "var(--color-surface)" }}
           >
             <Bell size={18} strokeWidth={2} color="var(--color-text-2-body)" />
@@ -51,8 +54,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             />
           </div>
         </div>
-        <div className="flex-1 px-10 py-10">{children}</div>
+        <div className="flex-1 px-4 py-8 pb-28 sm:px-10 sm:py-10 md:pb-10">{children}</div>
       </div>
+      <MobileNav matchCount={matchCount ?? 0} />
     </div>
   );
 }

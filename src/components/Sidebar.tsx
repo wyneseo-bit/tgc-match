@@ -26,6 +26,11 @@ type NavItem = {
   badgeMuted?: boolean;
 };
 
+function isActive(pathname: string, href: string | null) {
+  if (!href) return false;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 function NavRow({ item, active }: { item: NavItem; active: boolean }) {
   const Icon = item.icon;
 
@@ -125,7 +130,7 @@ export function Sidebar({
 
       <div className="flex flex-col gap-0.5">
         {primary.map((item) => (
-          <NavRow key={item.label} item={item} active={pathname === item.href} />
+          <NavRow key={item.label} item={item} active={isActive(pathname, item.href)} />
         ))}
       </div>
 
@@ -133,7 +138,7 @@ export function Sidebar({
 
       <div className="flex flex-col gap-0.5">
         {secondary.map((item) => (
-          <NavRow key={item.label} item={item} active={pathname === item.href} />
+          <NavRow key={item.label} item={item} active={isActive(pathname, item.href)} />
         ))}
       </div>
 

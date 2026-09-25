@@ -111,10 +111,10 @@ export default async function MatchDetailPage({
         >
           Discovered {timeAgo(match.created_at, now)}
         </span>
-        <h1 className="text-5xl font-bold tracking-tight">We found a match.</h1>
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">We found a match.</h1>
       </div>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6 px-6">
+      <div className="grid grid-cols-1 items-center gap-8 px-6 sm:grid-cols-[1fr_auto_1fr] sm:gap-6">
         <div className="flex flex-col items-center gap-4">
           {heroGive && (
             <TcgCard width={200} imageUrl={heroGive.image_url} alt={heroGive.name} />

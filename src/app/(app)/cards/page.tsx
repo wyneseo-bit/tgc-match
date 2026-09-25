@@ -134,6 +134,12 @@ export default function CardsPage() {
         <p className="text-sm" style={{ color: "var(--color-danger)" }}>{error}</p>
       )}
 
+      {status === "idle" && mode === "search" && cards.length === 0 && (
+        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+          No cards found for &quot;{query}&quot;. Try a different name or spelling.
+        </p>
+      )}
+
       <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {cards.map((card) => (
           <div key={card.id} className="flex flex-col items-center gap-2 text-center">

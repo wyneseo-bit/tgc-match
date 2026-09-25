@@ -27,49 +27,53 @@ export function WantRow({ item }: { item: WantItem }) {
 
   return (
     <div
-      className="glass flex items-center gap-4 rounded-card p-4"
+      className="glass flex flex-col gap-3 rounded-card p-4 sm:flex-row sm:items-center sm:gap-4"
       style={{ border: "1px solid var(--color-border)" }}
     >
-      <TcgCard width={56} imageUrl={item.card.image_url} alt={item.card.name} />
+      <div className="flex min-w-0 items-center gap-4">
+        <TcgCard width={56} imageUrl={item.card.image_url} alt={item.card.name} />
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{item.card.name}</p>
-        <p className="text-xs" style={{ color: "var(--color-muted)" }}>
-          {item.card.set_name} · #{item.card.card_number}
-        </p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold">{item.card.name}</p>
+          <p className="truncate text-xs" style={{ color: "var(--color-muted)" }}>
+            {item.card.set_name} · #{item.card.card_number}
+          </p>
+        </div>
       </div>
 
-      <select
-        value={priority}
-        onChange={(e) => {
-          const value = e.target.value as WantItem["priority"];
-          setPriority(value);
-          startTransition(() => {
-            updatePriority(item.id, value);
-          });
-        }}
-        className="rounded-btn border border-border-strong px-2.5 py-1.5 text-sm text-text"
-        style={{ background: "var(--color-surface-2)" }}
-      >
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-      </select>
+      <div className="flex items-center gap-2 sm:flex-none">
+        <select
+          value={priority}
+          onChange={(e) => {
+            const value = e.target.value as WantItem["priority"];
+            setPriority(value);
+            startTransition(() => {
+              updatePriority(item.id, value);
+            });
+          }}
+          className="rounded-btn border border-border-strong px-2.5 py-1.5 text-sm text-text"
+          style={{ background: "var(--color-surface-2)" }}
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
 
-      <button
-        type="button"
-        disabled={isPending}
-        onClick={() => {
-          setRemoved(true);
-          startTransition(() => {
-            removeFromWants(item.id);
-          });
-        }}
-        className="text-sm underline disabled:opacity-50"
-        style={{ color: "var(--color-danger)" }}
-      >
-        Remove
-      </button>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => {
+            setRemoved(true);
+            startTransition(() => {
+              removeFromWants(item.id);
+            });
+          }}
+          className="text-sm underline disabled:opacity-50"
+          style={{ color: "var(--color-danger)" }}
+        >
+          Remove
+        </button>
+      </div>
     </div>
   );
 }

@@ -36,65 +36,69 @@ export function CollectionRow({ item }: { item: CollectionItem }) {
 
   return (
     <div
-      className="glass flex items-center gap-4 rounded-card p-4"
+      className="glass flex flex-col gap-3 rounded-card p-4 sm:flex-row sm:items-center sm:gap-4"
       style={{ border: "1px solid var(--color-border)" }}
     >
-      <TcgCard width={56} imageUrl={item.card.image_url} alt={item.card.name} />
+      <div className="flex min-w-0 items-center gap-4">
+        <TcgCard width={56} imageUrl={item.card.image_url} alt={item.card.name} />
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{item.card.name}</p>
-        <p className="text-xs" style={{ color: "var(--color-muted)" }}>
-          {item.card.set_name} · #{item.card.card_number}
-        </p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold">{item.card.name}</p>
+          <p className="truncate text-xs" style={{ color: "var(--color-muted)" }}>
+            {item.card.set_name} · #{item.card.card_number}
+          </p>
+        </div>
       </div>
 
-      <input
-        type="number"
-        min={1}
-        value={quantity}
-        onChange={(e) => {
-          const value = Math.max(1, Number(e.target.value) || 1);
-          setQuantity(value);
-          startTransition(() => {
-            updateQuantity(item.id, value);
-          });
-        }}
-        className={`w-16 ${inputClass}`}
-        style={{ background: "var(--color-surface-2)" }}
-      />
+      <div className="flex items-center gap-2 sm:flex-none">
+        <input
+          type="number"
+          min={1}
+          value={quantity}
+          onChange={(e) => {
+            const value = Math.max(1, Number(e.target.value) || 1);
+            setQuantity(value);
+            startTransition(() => {
+              updateQuantity(item.id, value);
+            });
+          }}
+          className={`w-16 ${inputClass}`}
+          style={{ background: "var(--color-surface-2)" }}
+        />
 
-      <select
-        value={tradeStatus}
-        onChange={(e) => {
-          const value = e.target.value as CollectionItem["trade_status"];
-          setTradeStatus(value);
-          startTransition(() => {
-            updateTradeStatus(item.id, value);
-          });
-        }}
-        className={inputClass}
-        style={{ background: "var(--color-surface-2)" }}
-      >
-        <option value="keep">Keep</option>
-        <option value="maybe">Maybe</option>
-        <option value="available">Available</option>
-        <option value="for_sale">For sale</option>
-      </select>
+        <select
+          value={tradeStatus}
+          onChange={(e) => {
+            const value = e.target.value as CollectionItem["trade_status"];
+            setTradeStatus(value);
+            startTransition(() => {
+              updateTradeStatus(item.id, value);
+            });
+          }}
+          className={inputClass}
+          style={{ background: "var(--color-surface-2)" }}
+        >
+          <option value="keep">Keep</option>
+          <option value="maybe">Maybe</option>
+          <option value="available">Available</option>
+          <option value="for_sale">For sale</option>
+        </select>
 
-      <button
-        type="button"
-        disabled={isPending}
-        onClick={() => {
-          setRemoved(true);
-          startTransition(() => {
-            removeFromCollection(item.id);
-          });
-        }}
-        className="text-sm underline disabled:opacity-50"
-        style={{ color: "var(--color-danger)" }}
-      >
-        Remove
-      </button>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => {
+            setRemoved(true);
+            startTransition(() => {
+              removeFromCollection(item.id);
+            });
+          }}
+          className="text-sm underline disabled:opacity-50"
+          style={{ color: "var(--color-danger)" }}
+        >
+          Remove
+        </button>
+      </div>
     </div>
   );
 }
