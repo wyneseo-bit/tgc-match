@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { TcgCard } from "@/components/TcgCard";
 import { addToCollection } from "../collection/actions";
@@ -18,6 +18,7 @@ type AddKind = "collection" | "wants";
 
 export default function CardsPage() {
   const [query, setQuery] = useState("");
+  const [mode, setMode] = useState<"popular" | "search">("popular");
   const [cards, setCards] = useState<Card[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
@@ -29,15 +30,39 @@ export default function CardsPage() {
     null,
   );
 
+  async function loadPopular() {
+    setMode("popular");
+    setStatus("loading");
+    const res = await fetch("/api/cards/popular");
+    const json = await res.json();
+
+    if (!res.ok) {
+      setError(json.error ?? "Could not load popular cards");
+      setStatus("error");
+      return;
+    }
+
+    setCards(json.cards);
+    setStatus("idle");
+  }
+
+  useEffect(() => {
+    // Standard fetch-on-mount: loadPopular is also reused from search()
+    // when the query is cleared, which is the intentional reason it isn't
+    // inlined here.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadPopular();
+  }, []);
+
   async function search(q: string) {
     setQuery(q);
 
     if (q.trim().length < 2) {
-      setCards([]);
-      setStatus("idle");
+      await loadPopular();
       return;
     }
 
+    setMode("search");
     setStatus("loading");
     const res = await fetch(`/api/cards/search?q=${encodeURIComponent(q)}`);
     const json = await res.json();
@@ -94,8 +119,16 @@ export default function CardsPage() {
         />
       </div>
 
+      {mode === "popular" && status !== "error" && (
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
+          Popular cards
+        </h2>
+      )}
+
       {status === "loading" && (
-        <p className="text-sm" style={{ color: "var(--color-muted)" }}>Searching…</p>
+        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+          {mode === "popular" ? "Loading…" : "Searching…"}
+        </p>
       )}
       {status === "error" && (
         <p className="text-sm" style={{ color: "var(--color-danger)" }}>{error}</p>

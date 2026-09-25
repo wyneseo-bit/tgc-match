@@ -74,3 +74,29 @@ export async function searchCards(query: string): Promise<CachedCard[]> {
 
   return fullCards.map(toCachedCard);
 }
+
+// A hand-picked set of recognizable cards so the Discover page has something
+// to show before the user searches, rather than an empty state. Mixes
+// classic Base Set staples with modern chase cards; every id verified
+// directly against the live API before being hardcoded here.
+export const POPULAR_CARD_IDS = [
+  "base1-4", // Charizard, Base Set
+  "base1-2", // Blastoise, Base Set
+  "base1-15", // Venusaur, Base Set
+  "base1-10", // Mewtwo, Base Set
+  "base1-58", // Pikachu, Base Set
+  "base1-1", // Alakazam, Base Set
+  "base1-6", // Gyarados, Base Set
+  "swsh7-215", // Umbreon VMAX, Evolving Skies
+  "swsh7-218", // Rayquaza VMAX, Evolving Skies
+  "swsh8-157", // Gengar VMAX, Fusion Strike
+  "sv03.5-151", // Mew ex, 151
+];
+
+export async function getCardsByIds(ids: string[]): Promise<CachedCard[]> {
+  const fullCards = await Promise.all(
+    ids.map((id) => fetchJson<CardFull>(`${BASE_URL}/cards/${id}`)),
+  );
+
+  return fullCards.map(toCachedCard);
+}
