@@ -14,9 +14,9 @@ create table if not exists public.users (
   created_at timestamptz not null default now()
 );
 
--- cards: reference table, seeded from pokemontcg.io
+-- cards: reference table, seeded from TCGdex (api.tcgdex.net)
 create table if not exists public.cards (
-  id text primary key, -- pokemontcg.io card id, reused as our PK
+  id text primary key, -- TCGdex card id, reused as our PK
   name text not null,
   set_name text not null,
   card_number text not null,

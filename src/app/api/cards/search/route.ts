@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { searchPokemonCards } from "@/lib/pokemontcg";
+import { searchCards } from "@/lib/tcgdex";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -36,27 +36,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ cards: cached });
   }
 
-  // Not in the cache yet — pull from pokemontcg.io and store it for next time.
-  let fetched: Awaited<ReturnType<typeof searchPokemonCards>>;
+  // Not in the cache yet — pull from TCGdex and store it for next time.
+  let rows: Awaited<ReturnType<typeof searchCards>>;
   try {
-    fetched = await searchPokemonCards(q);
+    rows = await searchCards(q);
   } catch (err) {
     return NextResponse.json(
-      {
-        error:
-          err instanceof Error ? err.message : "pokemontcg.io request failed",
-      },
+      { error: err instanceof Error ? err.message : "TCGdex request failed" },
       { status: 502 },
     );
   }
-
-  const rows = fetched.map((card) => ({
-    id: card.id,
-    name: card.name,
-    set_name: card.set?.name ?? "Unknown set",
-    card_number: card.number,
-    image_url: card.images?.small ?? null,
-  }));
 
   if (rows.length > 0) {
     const { error: upsertError } = await admin.from("cards").upsert(rows);
