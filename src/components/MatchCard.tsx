@@ -1,4 +1,5 @@
-import { ArrowLeftRight, BadgeCheck } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeftRight, BadgeCheck, ChevronRight } from "lucide-react";
 import { TcgCard } from "./TcgCard";
 
 export type MatchCardSide = {
@@ -9,6 +10,7 @@ export type MatchCardSide = {
 };
 
 export function MatchCard({
+  id,
   score,
   isNew,
   youGive,
@@ -19,6 +21,7 @@ export function MatchCard({
   featured,
   action,
 }: {
+  id: string;
   score: number;
   isNew: boolean;
   youGive: MatchCardSide[];
@@ -59,6 +62,14 @@ export function MatchCard({
           <span className="text-[11px]" style={{ color: "var(--color-muted)" }}>
             Pokémon
           </span>
+          <Link
+            href={`/matches/${id}`}
+            className="flex items-center rounded-full"
+            style={{ color: "var(--color-muted)" }}
+            aria-label="View match details"
+          >
+            <ChevronRight size={16} strokeWidth={2} />
+          </Link>
         </div>
       </div>
 

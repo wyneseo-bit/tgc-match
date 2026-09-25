@@ -148,6 +148,7 @@ export default async function MatchesPage() {
           return (
             <MatchCard
               key={m.id}
+              id={m.id}
               score={m.match_score}
               isNew={isNew}
               youGive={iGive}

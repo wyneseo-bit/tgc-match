@@ -91,7 +91,7 @@ export function Sidebar({
 
   const secondary: NavItem[] = [
     { label: "Messages", href: null, icon: MessageCircle },
-    { label: "Profile", href: null, icon: User },
+    { label: "Profile", href: "/profile", icon: User },
     { label: "Settings", href: null, icon: SlidersVertical },
   ];
 
@@ -137,7 +137,8 @@ export function Sidebar({
 
       <div className="flex-1" />
 
-      <div
+      <Link
+        href="/profile"
         className="flex items-center gap-2.5 rounded-btn border border-border p-2.5"
         style={{ background: "var(--color-surface)" }}
       >
@@ -158,7 +159,7 @@ export function Sidebar({
             </span>
           )}
         </div>
-      </div>
+      </Link>
     </div>
   );
 }
