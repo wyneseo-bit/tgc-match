@@ -13,5 +13,5 @@ export default async function ResetPasswordPage() {
     redirect("/login");
   }
 
-  return <ResetPasswordForm />;
+  return <ResetPasswordForm email={user.email ?? ""} />;
 }

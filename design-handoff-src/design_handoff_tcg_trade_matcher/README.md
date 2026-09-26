@@ -130,6 +130,32 @@ backdrop-filter: blur(16px);
 7. **Verified badge:** cyan text + badge-check icon, optionally in a pill on `rgba(66,217,232,.1)`.
 
 ## Screens
+
+### Authentication (section 2)
+Shared form rules (trust layer — solid surfaces, no glass, no animation):
+- Form column 400px wide, centered; 24px gap between blocks, 16px between fields.
+- Label 13/500 `#C9CEDB`, 8px above input. Helper 12px muted below.
+- Input: 48px tall, radius 12, bg `#171B25`, border `rgba(255,255,255,.08)`, 14px padding, 16px leading icon muted.
+  - Focus: border `rgba(108,99,255,.5)` + `0 0 0 4px rgba(108,99,255,.1)`.
+  - Error: border `rgba(255,107,107,.6)` + `0 0 0 4px rgba(255,107,107,.08)`, message 12px `#FF6B6B`.
+  - Password fields: trailing eye toggle.
+- Social button ("Continue with Google"): secondary style, 48px. Divider "or" with 1px lines.
+- Primary submit: full-width 48px gradient.
+- Checkbox: 18px, radius 5; checked = `#6C63FF` with white check.
+
+- **2a Sign up** (1280×820): grid `560px 1fr`.
+  - Left brand panel (bg-2 + indigo radial glow): logo; two tilted cards (−10° / +9°) + excited mascot (200px); H2 36/700 "Your binder is about to get busier." + subcopy.
+  - Right: top-right "Already have an account? Log in". Form: H1 30/700 "Create your account" / "Free to join. Takes less than a minute." → Google → divider → Collector name (helper: "Shown on your profile and trades.") → Email (focused) → Password + 4-segment strength meter (cyan filled / `#1D2330` empty) + "Strong password" → terms checkbox ("I agree to the Terms and Trading Rules, and I'm 18 or older.") → "Create Account" → footnote with shield icon: identity verification is only asked before the first trade.
+- **2b Log in** (1280×820): same split.
+  - Left: searching mascot + small glass chip "3 new matches since you last visited"; H2 "Welcome back, collector."
+  - Right: "New here? Create an account". H1 "Log in" → Google → Email → Password with "Forgot password?" link right-aligned on the label row (error state shown: "That email and password don't match. 4 attempts left.") → "Keep me logged in on this device" checkbox → "Log In" → footnote "We'll never ask for your password in a message."
+- **2c Forgot password — request** (single centered card, 620×720 artboard): "← Back to log in" top-left; thinking mascot (120px); H1 "Forgot your password?" + copy; Email (focused); "Send Reset Link"; "Remembered it? Log in". Faint indigo radial glow at top.
+- **2d Email sent**: 88px cyan-tint circle with mail icon; H1 "Check your inbox"; copy with the email in bold and "expires in 30 minutes"; secondary "Open Email App"; "Didn't get it? Check spam, or Resend in 0:42" (mono countdown, then becomes a link).
+- **2e Set new password** (from email link): key icon tile; H1 "Set a new password" / "For {email}"; New + Confirm fields (confirm shows cyan check when matching); rules checklist panel (bg-2): At least 10 characters, One number, One symbol, Not used before — met = cyan check chip, unmet = grey x; "Update Password"; note "You'll be logged out on all other devices."
+
+Behavior: submit disabled until required fields are valid; validate on blur, not per keystroke; after 5 failed logins show a cooldown; reset link single-use, 30 min expiry; always show the same "check your inbox" screen whether or not the email exists (don't leak accounts).
+
+### App
 - **1a Brand sheet** (reference only): the palette plus the 7 mascot expressions and what each is used for.
 - **1b Landing** (1280 wide)
   - Top nav: logo, links, Log in, Find Matches.

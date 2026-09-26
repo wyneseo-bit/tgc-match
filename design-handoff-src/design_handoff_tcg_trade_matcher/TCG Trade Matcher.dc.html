@@ -13,6 +13,144 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>body{margin:0;background:#05060A;font-family:Geist,Inter,sans-serif;color:#F4F5F8;-webkit-font-smoothing:antialiased}a{color:#8F88FF;text-decoration:none}a:hover{color:#A66CFF}</style>
 </helmet>
+<section id="t2" style="background:#05060A;width:max-content;min-width:100%;box-sizing:border-box;padding:48px 56px 16px;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+<a href="#t2" style="font:600 11px 'Geist Mono',monospace;padding:4px 8px;background:#F4F5F8;color:#0B0D12;border-radius:4px">2</a>
+<span style="font-size:15px;font-weight:600;color:#F4F5F8">Authentication — sign up, log in, forgot password</span>
+<span style="font-size:13px;color:#8B93A7;max-width:760px;text-wrap:pretty">Split layout: brand panel (playful) on the left, form on the right. The form side follows the trust layer: solid surfaces, no glass or animation.</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+
+<div id="2a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8B93A7"><a href="#2a" style="font:600 11px 'Geist Mono',monospace;padding:3px 7px;background:#1D2330;color:#F4F5F8;border-radius:5px">2a</a>Sign up</div>
+<div data-screen-label="Sign Up" style="width:1280px;height:820px;border-radius:16px;overflow:hidden;background:#0B0D12;border:1px solid rgba(255,255,255,0.06);display:grid;grid-template-columns:560px minmax(0,1fr)">
+<div style="position:relative;overflow:hidden;background:radial-gradient(500px 400px at 40% 55%, rgba(108,99,255,0.28), transparent 65%), radial-gradient(300px 240px at 90% 90%, rgba(66,217,232,0.10), transparent 70%), #11141C;border-right:1px solid rgba(255,255,255,0.06);padding:40px 48px;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:10px"><dc-import name="Mascot" mood="curious" size="30" color="{{ mascotColor }}" hint-size="30px,33px"></dc-import><span style="font-weight:700;font-size:16px;letter-spacing:-0.01em">TCG Trade Matcher</span></div>
+<div style="flex:1;position:relative">
+<div style="position:absolute;left:24px;top:90px;transform:rotate(-10deg)"><dc-import name="TcgCard" card-name="Mew ex" code="205" tone="violet" w="120" hint-size="120px,168px"></dc-import></div>
+<div style="position:absolute;right:20px;top:60px;transform:rotate(9deg)"><dc-import name="TcgCard" card-name="Monkey.D.Luffy" code="OP05" tone="yellow" w="112" hint-size="112px,156px"></dc-import></div>
+<div style="position:absolute;left:140px;top:130px"><dc-import name="Mascot" mood="excited" size="200" color="{{ mascotColor }}" hint-size="200px,217px"></dc-import></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-size:36px;line-height:1.1;letter-spacing:-0.025em;font-weight:700">Your binder is about<br>to get busier.</h2>
+<p style="margin:0;font-size:15px;line-height:1.55;color:#A3AABB;max-width:400px">List what you have and what you want. We'll find the collectors you can trade with.</p>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;padding:32px 48px">
+<div style="display:flex;justify-content:flex-end;font-size:14px;color:#8B93A7;gap:6px">Already have an account?<a href="#2b" style="color:#8F88FF;font-weight:500">Log in</a></div>
+<div style="flex:1;display:flex;align-items:center;justify-content:center">
+<div style="width:400px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:6px"><h1 style="margin:0;font-size:30px;letter-spacing:-0.02em;font-weight:700">Create your account</h1><span style="font-size:14px;color:#8B93A7">Free to join. Takes less than a minute.</span></div>
+<span style="height:48px;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:12px;background:#171B25;border:1px solid rgba(255,255,255,0.1);font-size:14px;font-weight:500"><span style="width:20px;height:20px;border-radius:50%;background:#F4F5F8;color:#0B0D12;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">G</span>Continue with Google</span>
+<div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#8B93A7"><span style="flex:1;height:1px;background:rgba(255,255,255,0.08)"></span>or with email<span style="flex:1;height:1px;background:rgba(255,255,255,0.08)"></span></div>
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500;color:#C9CEDB">Collector name</span><div style="height:48px;display:flex;align-items:center;padding:0 14px;border-radius:12px;background:#171B25;border:1px solid rgba(255,255,255,0.08);font-size:14px;color:#F4F5F8">aisyah.collects</div><span style="font-size:12px;color:#8B93A7">Shown on your profile and trades.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500;color:#C9CEDB">Email</span><div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:12px;background:#171B25;border:1px solid rgba(108,99,255,0.5);box-shadow:0 0 0 4px rgba(108,99,255,0.1);font-size:14px;color:#F4F5F8"><dc-import name="Icon" icon-name="mail" size="16" color="#8B93A7" hint-size="16px,16px"></dc-import>aisyah@gmail.com<span style="width:1px;height:18px;background:#8F88FF;margin-left:-8px"></span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500;color:#C9CEDB">Password</span><div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:12px;background:#171B25;border:1px solid rgba(255,255,255,0.08);font-size:14px;color:#F4F5F8;letter-spacing:0.2em"><dc-import name="Icon" icon-name="lock" size="16" color="#8B93A7" hint-size="16px,16px"></dc-import><span style="flex:1">••••••••••</span><dc-import name="Icon" icon-name="eye" size="16" color="#8B93A7" hint-size="16px,16px"></dc-import></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px"><span style="height:4px;border-radius:99px;background:#42D9E8"></span><span style="height:4px;border-radius:99px;background:#42D9E8"></span><span style="height:4px;border-radius:99px;background:#42D9E8"></span><span style="height:4px;border-radius:99px;background:#1D2330"></span></div>
+<span style="font-size:12px;color:#42D9E8">Strong password</span></div>
+</div>
+<div style="display:flex;align-items:flex-start;gap:10px"><span style="width:18px;height:18px;border-radius:5px;background:#6C63FF;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px"><dc-import name="Icon" icon-name="check" size="12" color="#fff" sw="3" hint-size="12px,12px"></dc-import></span><span style="font-size:13px;color:#A3AABB;line-height:1.5">I agree to the <a href="#2a">Terms</a> and <a href="#2a">Trading Rules</a>, and I'm 18 or older.</span></div>
+<span style="height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(90deg,#6C63FF,#A66CFF);font-size:15px;font-weight:500;box-shadow:0 10px 30px rgba(108,99,255,0.3)">Create Account</span>
+<span style="font-size:12px;color:#8B93A7;display:flex;align-items:center;gap:6px;justify-content:center"><dc-import name="Icon" icon-name="shield" size="13" color="#8B93A7" hint-size="13px,13px"></dc-import>You'll only be asked to verify your identity before your first trade.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="2b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8B93A7"><a href="#2b" style="font:600 11px 'Geist Mono',monospace;padding:3px 7px;background:#1D2330;color:#F4F5F8;border-radius:5px">2b</a>Log in · with error state on password</div>
+<div data-screen-label="Log In" style="width:1280px;height:820px;border-radius:16px;overflow:hidden;background:#0B0D12;border:1px solid rgba(255,255,255,0.06);display:grid;grid-template-columns:560px minmax(0,1fr)">
+<div style="position:relative;overflow:hidden;background:radial-gradient(500px 400px at 40% 55%, rgba(108,99,255,0.28), transparent 65%), radial-gradient(300px 240px at 10% 90%, rgba(255,138,122,0.08), transparent 70%), #11141C;border-right:1px solid rgba(255,255,255,0.06);padding:40px 48px;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:10px"><dc-import name="Mascot" mood="curious" size="30" color="{{ mascotColor }}" hint-size="30px,33px"></dc-import><span style="font-weight:700;font-size:16px;letter-spacing:-0.01em">TCG Trade Matcher</span></div>
+<div style="flex:1;position:relative">
+<div style="position:absolute;left:150px;top:110px"><dc-import name="Mascot" mood="searching" size="200" color="{{ mascotColor }}" hint-size="200px,217px"></dc-import></div>
+<div style="position:absolute;left:36px;top:70px;width:230px;box-sizing:border-box;padding:16px;border-radius:16px;background:rgba(23,27,37,0.72);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(16px);display:flex;align-items:center;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,0.4)">
+<span style="font-size:26px;font-weight:700;letter-spacing:-0.02em;background:linear-gradient(90deg,#8F88FF,#C79BFF);-webkit-background-clip:text;background-clip:text;color:transparent">3</span>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:600">new matches</span><span style="font-size:12px;color:#8B93A7">since you last visited</span></div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-size:36px;line-height:1.1;letter-spacing:-0.025em;font-weight:700">Welcome back,<br>collector.</h2>
+<p style="margin:0;font-size:15px;line-height:1.55;color:#A3AABB;max-width:400px">Your matches have been busy while you were away.</p>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;padding:32px 48px">
+<div style="display:flex;justify-content:flex-end;font-size:14px;color:#8B93A7;gap:6px">New here?<a href="#2a" style="color:#8F88FF;font-weight:500">Create an account</a></div>
+<div style="flex:1;display:flex;align-items:center;justify-content:center">
+<div style="width:400px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:6px"><h1 style="margin:0;font-size:30px;letter-spacing:-0.02em;font-weight:700">Log in</h1><span style="font-size:14px;color:#8B93A7">Pick up where you left off.</span></div>
+<span style="height:48px;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:12px;background:#171B25;border:1px solid rgba(255,255,255,0.1);font-size:14px;font-weight:500"><span style="width:20px;height:20px;border-radius:50%;background:#F4F5F8;color:#0B0D12;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">G</span>Continue with Google</span>
+<div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#8B93A7"><span style="flex:1;height:1px;background:rgba(255,255,255,0.08)"></span>or<span style="flex:1;height:1px;background:rgba(255,255,255,0.08)"></span></div>
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500;color:#C9CEDB">Email</span><div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:12px;background:#171B25;border:1px solid rgba(255,255,255,0.08);font-size:14px;color:#F4F5F8"><dc-import name="Icon" icon-name="mail" size="16" color="#8B93A7" hint-size="16px,16px"></dc-import>wayne@gmail.com</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:500;color:#C9CEDB">Password</span><a href="#2c" style="font-size:13px;font-weight:500">Forgot password?</a></div><div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:12px;background:#171B25;border:1px solid rgba(255,107,107,0.6);box-shadow:0 0 0 4px rgba(255,107,107,0.08);font-size:14px;color:#F4F5F8;letter-spacing:0.2em"><dc-import name="Icon" icon-name="lock" size="16" color="#8B93A7" hint-size="16px,16px"></dc-import><span style="flex:1">••••••••</span><dc-import name="Icon" icon-name="eye" size="16" color="#8B93A7" hint-size="16px,16px"></dc-import></div><span style="font-size:12px;color:#FF6B6B">That email and password don't match. 4 attempts left.</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:18px;height:18px;border-radius:5px;background:#171B25;border:1px solid rgba(255,255,255,0.18);box-sizing:border-box"></span><span style="font-size:13px;color:#A3AABB">Keep me logged in on this device</span></div>
+<span style="height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(90deg,#6C63FF,#A66CFF);font-size:15px;font-weight:500;box-shadow:0 10px 30px rgba(108,99,255,0.3)">Log In</span>
+<span style="font-size:12px;color:#8B93A7;display:flex;align-items:center;gap:6px;justify-content:center"><dc-import name="Icon" icon-name="lock" size="13" color="#8B93A7" hint-size="13px,13px"></dc-import>We'll never ask for your password in a message.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="2c" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8B93A7"><a href="#2c" style="font:600 11px 'Geist Mono',monospace;padding:3px 7px;background:#1D2330;color:#F4F5F8;border-radius:5px">2c</a>Forgot password · request</div>
+<div data-screen-label="Forgot Password" style="width:620px;height:720px;box-sizing:border-box;border-radius:16px;overflow:hidden;background:radial-gradient(420px 300px at 50% 18%, rgba(108,99,255,0.18), transparent 70%), #0B0D12;border:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;padding:32px 40px">
+<div style="display:flex;justify-content:space-between;align-items:center"><a href="#2b" style="display:flex;align-items:center;gap:8px;font-size:14px;color:#A3AABB"><dc-import name="Icon" icon-name="back" size="16" color="#A3AABB" hint-size="16px,16px"></dc-import>Back to log in</a><dc-import name="Mascot" mood="curious" size="26" color="{{ mascotColor }}" hint-size="26px,28px"></dc-import></div>
+<div style="flex:1;display:flex;align-items:center;justify-content:center">
+<div style="width:400px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center">
+<dc-import name="Mascot" mood="thinking" size="120" color="{{ mascotColor }}" hint-size="120px,130px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-size:30px;letter-spacing:-0.02em;font-weight:700">Forgot your password?</h1><span style="font-size:14px;color:#8B93A7;line-height:1.5;text-wrap:pretty">It happens. Enter the email on your account and we'll send you a reset link.</span></div>
+<div style="width:100%;display:flex;flex-direction:column;gap:8px;text-align:left"><span style="font-size:13px;font-weight:500;color:#C9CEDB">Email</span><div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:12px;background:#171B25;border:1px solid rgba(108,99,255,0.5);box-shadow:0 0 0 4px rgba(108,99,255,0.1);font-size:14px;color:#F4F5F8"><dc-import name="Icon" icon-name="mail" size="16" color="#8B93A7" hint-size="16px,16px"></dc-import>wayne@gmail.com</div></div>
+<span style="width:100%;height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(90deg,#6C63FF,#A66CFF);font-size:15px;font-weight:500;box-shadow:0 10px 30px rgba(108,99,255,0.3)">Send Reset Link</span>
+<span style="font-size:13px;color:#8B93A7">Remembered it? <a href="#2b" style="font-weight:500">Log in</a></span>
+</div>
+</div>
+</div>
+</div>
+
+<div id="2d" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8B93A7"><a href="#2d" style="font:600 11px 'Geist Mono',monospace;padding:3px 7px;background:#1D2330;color:#F4F5F8;border-radius:5px">2d</a>Forgot password · email sent</div>
+<div data-screen-label="Check Email" style="width:620px;height:720px;box-sizing:border-box;border-radius:16px;overflow:hidden;background:radial-gradient(420px 300px at 50% 18%, rgba(66,217,232,0.12), transparent 70%), #0B0D12;border:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;padding:32px 40px">
+<div style="display:flex;justify-content:space-between;align-items:center"><a href="#2b" style="display:flex;align-items:center;gap:8px;font-size:14px;color:#A3AABB"><dc-import name="Icon" icon-name="back" size="16" color="#A3AABB" hint-size="16px,16px"></dc-import>Back to log in</a><dc-import name="Mascot" mood="curious" size="26" color="{{ mascotColor }}" hint-size="26px,28px"></dc-import></div>
+<div style="flex:1;display:flex;align-items:center;justify-content:center">
+<div style="width:400px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center">
+<div style="width:88px;height:88px;border-radius:50%;background:rgba(66,217,232,0.1);box-shadow:inset 0 0 0 1px rgba(66,217,232,0.3);display:flex;align-items:center;justify-content:center"><dc-import name="Icon" icon-name="mail" size="36" color="#42D9E8" sw="1.8" hint-size="36px,36px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-size:30px;letter-spacing:-0.02em;font-weight:700">Check your inbox</h1><span style="font-size:14px;color:#8B93A7;line-height:1.5;text-wrap:pretty">We sent a reset link to <span style="color:#F4F5F8;font-weight:500">wayne@gmail.com</span>. It expires in 30 minutes.</span></div>
+<span style="width:100%;height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#171B25;border:1px solid rgba(255,255,255,0.1);font-size:15px;font-weight:500">Open Email App</span>
+<div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#8B93A7"><span>Didn't get it? Check spam, or</span><span style="display:flex;align-items:center;gap:6px;justify-content:center"><dc-import name="Icon" icon-name="clock" size="13" color="#8B93A7" hint-size="13px,13px"></dc-import>Resend in <span style="font-family:'Geist Mono',monospace;color:#C9CEDB">0:42</span></span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="2e" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8B93A7"><a href="#2e" style="font:600 11px 'Geist Mono',monospace;padding:3px 7px;background:#1D2330;color:#F4F5F8;border-radius:5px">2e</a>Forgot password · set new password</div>
+<div data-screen-label="New Password" style="width:620px;height:720px;box-sizing:border-box;border-radius:16px;overflow:hidden;background:#0B0D12;border:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;padding:32px 40px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px"><dc-import name="Mascot" mood="curious" size="26" color="{{ mascotColor }}" hint-size="26px,28px"></dc-import>TCG Trade Matcher</span></div>
+<div style="flex:1;display:flex;align-items:center;justify-content:center">
+<div style="width:400px;display:flex;flex-direction:column;gap:24px">
+<div style="width:48px;height:48px;border-radius:14px;background:#171B25;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><dc-import name="Icon" icon-name="key" size="20" color="#8F88FF" hint-size="20px,20px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-size:30px;letter-spacing:-0.02em;font-weight:700">Set a new password</h1><span style="font-size:14px;color:#8B93A7">For wayne@gmail.com</span></div>
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500;color:#C9CEDB">New password</span><div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:12px;background:#171B25;border:1px solid rgba(255,255,255,0.08);font-size:14px;color:#F4F5F8;letter-spacing:0.2em"><span style="flex:1">••••••••••••</span><dc-import name="Icon" icon-name="eye" size="16" color="#8B93A7" hint-size="16px,16px"></dc-import></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500;color:#C9CEDB">Confirm password</span><div style="height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:12px;background:#171B25;border:1px solid rgba(255,255,255,0.08);font-size:14px;color:#F4F5F8;letter-spacing:0.2em"><span style="flex:1">••••••••••••</span><dc-import name="Icon" icon-name="check" size="16" color="#42D9E8" hint-size="16px,16px"></dc-import></div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:12px;background:#11141C;border:1px solid rgba(255,255,255,0.06)">
+<sc-for list="{{ pwRules }}" as="r" hint-placeholder-count="4"><span style="display:flex;align-items:center;gap:10px;font-size:13px;color:{{ r.fg }}"><span style="width:18px;height:18px;border-radius:50%;background:{{ r.bg }};display:flex;align-items:center;justify-content:center;flex:none"><dc-import name="Icon" icon-name="{{ r.icon }}" size="11" color="{{ r.ic }}" sw="3" hint-size="11px,11px"></dc-import></span>{{ r.t }}</span></sc-for>
+</div>
+<span style="height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(90deg,#6C63FF,#A66CFF);font-size:15px;font-weight:500">Update Password</span>
+<span style="font-size:12px;color:#8B93A7;text-align:center">You'll be logged out on all other devices.</span>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
 <section id="t1" style="background:#05060A;min-height:100vh;width:max-content;min-width:100%;box-sizing:border-box;padding:48px 56px 64px;display:flex;flex-direction:column;gap:28px">
 <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
 <a href="#t1" style="font:600 11px 'Geist Mono',monospace;padding:4px 8px;background:#F4F5F8;color:#0B0D12;border-radius:4px">1</a>
@@ -414,6 +552,7 @@ class Component extends DCLogic {
     const row = (k, v) => ({ k, v });
     return {
       mascotColor: this.props.mascotColor ?? "indigo",
+      pwRules: [["At least 10 characters", 1], ["One number", 1], ["One symbol", 1], ["Not used before", 0]].map(([t, ok]) => ({ t, icon: ok ? "check" : "x", fg: ok ? "#E4E7EE" : "#8B93A7", bg: ok ? "rgba(66,217,232,0.15)" : "#1D2330", ic: ok ? "#42D9E8" : "#8B93A7" })),
       palette: [
         { name: "Deep Ink", hex: "#0B0D12" }, { name: "Indigo", hex: "#6C63FF" }, { name: "Violet", hex: "#A66CFF" },
         { name: "Cyan", hex: "#42D9E8" }, { name: "Coral", hex: "#FF8A7A" }, { name: "Yellow", hex: "#FFD866" }

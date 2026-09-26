@@ -143,3 +143,16 @@ create policy "wants owner can delete" on public.wants
 -- matches: only the two matched users can see a match row.
 create policy "matches visible to matched users" on public.matches
   for select using (auth.uid() = user_a_id or auth.uid() = user_b_id);
+
+-- login_attempts: brute-force lockout tracking, keyed by email (not user id —
+-- attempts on a nonexistent or wrong email still need tracking to avoid
+-- leaking which emails have accounts). RLS enabled with no policies at all:
+-- only the service-role client (never the anon/authenticated client) should
+-- ever touch this table.
+create table if not exists public.login_attempts (
+  email text primary key,
+  failed_count int not null default 0,
+  locked_until timestamptz
+);
+
+alter table public.login_attempts enable row level security;
