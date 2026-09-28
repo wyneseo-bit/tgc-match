@@ -3,8 +3,9 @@
 // TCGdex (api.tcgdex.net) is free, open source (MIT), needs no API key, and
 // uses the same card id scheme (e.g. "base1-4"), so cached rows and existing
 // collection/wants references keep working across the swap.
+import type { FilterOptions, Finish, SetInfo } from "./card-filters";
+
 const BASE_URL = "https://api.tcgdex.net/v2/en";
-const MAX_RESULTS = 20;
 const MAX_ATTEMPTS = 3;
 
 type CardBrief = {
@@ -57,22 +58,118 @@ function toCachedCard(card: CardFull): CachedCard {
   };
 }
 
-export async function searchCards(query: string): Promise<CachedCard[]> {
+type Cached<T> = { at: number; value: T };
+const OPTIONS_TTL_MS = 6 * 60 * 60 * 1000;
+let optionsCache: Cached<FilterOptions> | null = null;
+
+// Sets, rarities, types and categories change only when an expansion ships,
+// so keep them per server instance rather than refetching on every search.
+export async function getFilterOptions(): Promise<FilterOptions> {
+  if (optionsCache && Date.now() - optionsCache.at < OPTIONS_TTL_MS) {
+    return optionsCache.value;
+  }
+
+  const [sets, rarities, types, categories] = await Promise.all([
+    fetchJson<(SetInfo & { cardCount?: { official?: number } })[]>(
+      `${BASE_URL}/sets`,
+    ),
+    fetchJson<string[]>(`${BASE_URL}/rarities`),
+    fetchJson<string[]>(`${BASE_URL}/types`),
+    fetchJson<string[]>(`${BASE_URL}/categories`),
+  ]);
+
+  const value: FilterOptions = {
+    sets: sets
+      .map(({ id, name, cardCount }) => ({
+        id,
+        name,
+        official: cardCount?.official,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+    // "None" is TCGdex's placeholder for cards with no printed rarity.
+    rarities: rarities.filter((r) => r !== "None"),
+    types,
+    categories,
+  };
+  optionsCache = { at: Date.now(), value };
+  return value;
+}
+
+export type CardQuery = {
+  name?: string;
+  setIds?: string[];
+  number?: string | null;
+  rarity?: string;
+  type?: string;
+  category?: string;
+  finish?: Finish;
+  page?: number;
+};
+
+export const SEARCH_PAGE_SIZE = 40;
+// A card number can't be filtered exactly by the API (ids are zero-padded
+// and the match is a substring), so fetch a wide page and match locally.
+const NUMBER_SEARCH_LIMIT = 200;
+
+function numericPart(localId: string) {
+  const digits = localId.replace(/\D/g, "");
+  return digits ? Number(digits) : NaN;
+}
+
+// A brief card's id is "<setId>-<localId>"; the longest matching set id wins
+// so "30th-c-008" resolves to "30th-c", not "30th".
+function resolveSetName(cardId: string, sets: SetInfo[]) {
+  let best: SetInfo | undefined;
+  for (const set of sets) {
+    if (
+      cardId.startsWith(`${set.id}-`) &&
+      (!best || set.id.length > best.id.length)
+    ) {
+      best = set;
+    }
+  }
+  return best?.name ?? "Unknown set";
+}
+
+export async function searchCardsFiltered(
+  query: CardQuery,
+): Promise<{ cards: CachedCard[]; hasMore: boolean }> {
+  const { sets } = await getFilterOptions();
+  const pageSize = query.number ? NUMBER_SEARCH_LIMIT : SEARCH_PAGE_SIZE;
+
   const params = new URLSearchParams({
-    name: query,
-    // The list endpoint has no per-search cap by default (a query like
-    // "pikachu" returns 200+ brief results) — cap it before fetching full
-    // card details, since the brief result omits set name/pricing.
-    "pagination:itemsPerPage": String(MAX_RESULTS),
+    "pagination:itemsPerPage": String(pageSize),
+    "pagination:page": String(query.page ?? 1),
   });
+  if (query.name) params.set("name", query.name);
+  // "|" is the API's OR; "eq:" makes the match exact instead of substring.
+  if (query.setIds?.length) {
+    params.set("set.id", query.setIds.map((id) => `eq:${id}`).join("|"));
+  }
+  if (query.rarity) params.set("rarity", `eq:${query.rarity}`);
+  if (query.type) params.set("types", `eq:${query.type}`);
+  if (query.category) params.set("category", `eq:${query.category}`);
+  if (query.finish) params.set(`variants.${query.finish}`, "true");
+  if (query.number) params.set("localId", query.number);
 
   const briefs = await fetchJson<CardBrief[]>(`${BASE_URL}/cards?${params}`);
 
-  const fullCards = await Promise.all(
-    briefs.map((b) => fetchJson<CardFull>(`${BASE_URL}/cards/${b.id}`)),
-  );
+  const wanted = query.number ? Number(query.number) : null;
+  const matching =
+    wanted === null
+      ? briefs
+      : briefs.filter((b) => numericPart(b.localId) === wanted);
 
-  return fullCards.map(toCachedCard);
+  return {
+    cards: matching.map((b) => ({
+      id: b.id,
+      name: b.name,
+      set_name: resolveSetName(b.id, sets),
+      card_number: b.localId,
+      image_url: b.image ? `${b.image}/high.webp` : null,
+    })),
+    hasMore: wanted === null && briefs.length === pageSize,
+  };
 }
 
 // A hand-picked set of recognizable cards so the Discover page has something
