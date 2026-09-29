@@ -93,16 +93,26 @@ export function MatchCard({
           <span className="text-[11px] uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
             You give
           </span>
-          <span className="truncate text-[13px] font-semibold">
-            {give?.name ?? "—"}
+          <span className="flex min-w-0 items-baseline gap-1">
+            <span className="min-w-0 truncate text-[13px] font-semibold">{give?.name ?? "—"}</span>
+            {youGive.length > 1 && (
+              <span className="flex-none text-[11px] font-normal" style={{ color: "var(--color-muted)" }}>
+                +{youGive.length - 1} more
+              </span>
+            )}
           </span>
         </div>
-        <div className="flex min-w-0 flex-col gap-0.5 text-right">
+        <div className="flex min-w-0 flex-col items-end gap-0.5 text-right">
           <span className="text-[11px] uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
             You get
           </span>
-          <span className="truncate text-[13px] font-semibold">
-            {get?.name ?? "—"}
+          <span className="flex min-w-0 items-baseline justify-end gap-1">
+            {youGet.length > 1 && (
+              <span className="flex-none text-[11px] font-normal" style={{ color: "var(--color-muted)" }}>
+                +{youGet.length - 1} more
+              </span>
+            )}
+            <span className="min-w-0 truncate text-[13px] font-semibold">{get?.name ?? "—"}</span>
           </span>
         </div>
       </div>
