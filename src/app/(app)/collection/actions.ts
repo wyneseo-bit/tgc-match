@@ -49,6 +49,23 @@ export async function updateTradeStatus(id: string, tradeStatus: string) {
   return { error: null };
 }
 
+export async function updateCondition(id: string, condition: string) {
+  const { supabase, user } = await requireUser();
+
+  const { error } = await supabase
+    .from("collection")
+    .update({ condition })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  await refreshMatchesForUser(user.id);
+  revalidatePath("/collection");
+  revalidatePath("/matches");
+  return { error: null };
+}
+
 export async function updateQuantity(id: string, quantity: number) {
   const { supabase, user } = await requireUser();
 

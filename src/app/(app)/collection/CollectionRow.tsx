@@ -2,8 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { TcgCard } from "@/components/TcgCard";
+import { CONDITION_OPTIONS, type Condition } from "@/lib/card-condition";
 import {
   removeFromCollection,
+  updateCondition,
   updateQuantity,
   updateTradeStatus,
 } from "./actions";
@@ -20,6 +22,7 @@ export type CollectionItem = {
   id: string;
   quantity: number;
   trade_status: "keep" | "maybe" | "available" | "for_sale";
+  condition: Condition;
   card: Card;
 };
 
@@ -28,6 +31,7 @@ const inputClass =
 
 export function CollectionRow({ item }: { item: CollectionItem }) {
   const [tradeStatus, setTradeStatus] = useState(item.trade_status);
+  const [condition, setCondition] = useState(item.condition);
   const [quantity, setQuantity] = useState(item.quantity);
   const [removed, setRemoved] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -67,6 +71,27 @@ export function CollectionRow({ item }: { item: CollectionItem }) {
         />
 
         <select
+          aria-label="Condition"
+          value={condition}
+          onChange={(e) => {
+            const value = e.target.value as Condition;
+            setCondition(value);
+            startTransition(() => {
+              updateCondition(item.id, value);
+            });
+          }}
+          className={inputClass}
+          style={{ background: "var(--color-surface-2)" }}
+        >
+          {CONDITION_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          aria-label="Trade status"
           value={tradeStatus}
           onChange={(e) => {
             const value = e.target.value as CollectionItem["trade_status"];

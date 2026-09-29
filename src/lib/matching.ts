@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { satisfiesCondition } from "@/lib/card-condition";
 
 type CollectionRow = {
   user_id: string;
@@ -36,16 +37,18 @@ function groupByUser<T extends { user_id: string }>(rows: T[]) {
 }
 
 function scoreMatch(pairs: MatchedCard[]) {
-  const exactConditionMatches = pairs.filter(
+  // want_condition is the minimum the other side will accept, not an exact
+  // condition to match — a Near Mint card satisfies a Lightly Played want.
+  const conditionMatches = pairs.filter(
     (p) =>
       p.have_condition &&
       p.want_condition &&
-      p.have_condition === p.want_condition &&
+      satisfiesCondition(p.have_condition, p.want_condition) &&
       (p.have_grade ?? null) === (p.want_grade ?? null),
   ).length;
 
   const overlapScore = Math.min(60, pairs.length * 10);
-  const conditionScore = Math.min(20, exactConditionMatches * 5);
+  const conditionScore = Math.min(20, conditionMatches * 5);
 
   // Phase 1 has no last-active tracking on users, so recency is a flat
   // bonus for now — revisit once real usage data exists (see schema.sql

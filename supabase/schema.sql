@@ -28,11 +28,18 @@ create index if not exists cards_name_idx on public.cards using gin (to_tsvector
 -- collection: a user's HAVEs
 create type trade_status as enum ('keep', 'maybe', 'available', 'for_sale');
 
+-- Ordered worst-to-best-agnostic (best first) so the matching engine (see
+-- lib/matching.ts) can rank conditions, not just compare them for equality.
+create type card_condition as enum (
+  'near_mint', 'lightly_played', 'moderately_played', 'heavily_played', 'damaged'
+);
+
 create table if not exists public.collection (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   card_id text not null references public.cards(id) on delete cascade,
-  condition text,
+  -- The actual condition of the physical card this user has.
+  condition card_condition not null default 'near_mint',
   grade text,
   language text,
   quantity int not null default 1,
@@ -50,7 +57,9 @@ create table if not exists public.wants (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   card_id text not null references public.cards(id) on delete cascade,
-  condition text,
+  -- The worst condition this user is willing to accept, not the condition of
+  -- anything they own.
+  condition card_condition not null default 'near_mint',
   grade text,
   priority want_priority not null default 'medium',
   created_at timestamptz not null default now()
@@ -156,3 +165,30 @@ create table if not exists public.login_attempts (
 );
 
 alter table public.login_attempts enable row level security;
+
+-- Migration: card_condition. collection.condition/wants.condition already
+-- existed as free-text and were never set anywhere in the app (the
+-- matching-engine condition bonus in lib/matching.ts was dead code as a
+-- result). This turns them into a constrained, ranked enum and backfills
+-- existing rows to the safest default. Run this once against a database
+-- created before this migration was added — a fresh database already gets
+-- the enum column from the create table statements above.
+do $$ begin
+  if not exists (select 1 from pg_type where typname = 'card_condition') then
+    create type card_condition as enum (
+      'near_mint', 'lightly_played', 'moderately_played', 'heavily_played', 'damaged'
+    );
+  end if;
+end $$;
+
+update public.collection set condition = 'near_mint' where condition is null;
+alter table public.collection
+  alter column condition type card_condition using condition::card_condition,
+  alter column condition set default 'near_mint',
+  alter column condition set not null;
+
+update public.wants set condition = 'near_mint' where condition is null;
+alter table public.wants
+  alter column condition type card_condition using condition::card_condition,
+  alter column condition set default 'near_mint',
+  alter column condition set not null;

@@ -32,6 +32,23 @@ export async function addToWants(cardId: string) {
   return { error: null };
 }
 
+export async function updateCondition(id: string, condition: string) {
+  const { supabase, user } = await requireUser();
+
+  const { error } = await supabase
+    .from("wants")
+    .update({ condition })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  await refreshMatchesForUser(user.id);
+  revalidatePath("/wants");
+  revalidatePath("/matches");
+  return { error: null };
+}
+
 export async function updatePriority(id: string, priority: string) {
   const { supabase, user } = await requireUser();
 

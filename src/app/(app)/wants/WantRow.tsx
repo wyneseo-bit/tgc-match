@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { TcgCard } from "@/components/TcgCard";
-import { removeFromWants, updatePriority } from "./actions";
+import { CONDITION_OPTIONS, type Condition } from "@/lib/card-condition";
+import { removeFromWants, updateCondition, updatePriority } from "./actions";
 
 type Card = {
   id: string;
@@ -15,11 +16,13 @@ type Card = {
 export type WantItem = {
   id: string;
   priority: "low" | "medium" | "high";
+  condition: Condition;
   card: Card;
 };
 
 export function WantRow({ item }: { item: WantItem }) {
   const [priority, setPriority] = useState(item.priority);
+  const [condition, setCondition] = useState(item.condition);
   const [removed, setRemoved] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -42,7 +45,33 @@ export function WantRow({ item }: { item: WantItem }) {
       </div>
 
       <div className="flex items-center gap-2 sm:flex-none">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs" style={{ color: "var(--color-muted)" }}>
+            Min
+          </span>
+          <select
+            aria-label="Minimum condition accepted"
+            value={condition}
+            onChange={(e) => {
+              const value = e.target.value as Condition;
+              setCondition(value);
+              startTransition(() => {
+                updateCondition(item.id, value);
+              });
+            }}
+            className="rounded-btn border border-border-strong px-2.5 py-1.5 text-sm text-text"
+            style={{ background: "var(--color-surface-2)" }}
+          >
+            {CONDITION_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <select
+          aria-label="Priority"
           value={priority}
           onChange={(e) => {
             const value = e.target.value as WantItem["priority"];
