@@ -192,3 +192,24 @@ alter table public.wants
   alter column condition type card_condition using condition::card_condition,
   alter column condition set default 'near_mint',
   alter column condition set not null;
+
+-- Migration: lock down handle_new_user's direct RPC exposure. Any function
+-- in the public schema is auto-exposed by PostgREST as an RPC endpoint
+-- (/rest/v1/rpc/<name>) unless EXECUTE is explicitly revoked. Supabase's
+-- security advisor flagged handle_new_user() — a security definer function —
+-- as callable directly by both anon and authenticated
+-- ("Public Can Execute SECURITY DEFINER Function" /
+-- "Signed-In Users Can Execute SECURITY DEFINER Function"). It's only meant
+-- to run as the on_auth_user_created trigger above; revoking direct EXECUTE
+-- closes that RPC path without affecting the trigger, since a trigger always
+-- runs with the function owner's privileges regardless of who has EXECUTE on
+-- it directly.
+--
+-- Revoking from anon/authenticated alone doesn't work: Postgres grants
+-- EXECUTE on every new function to the PUBLIC pseudo-role by default, and
+-- anon/authenticated inherit through that grant rather than holding EXECUTE
+-- directly (confirmed against information_schema.routine_privileges — no
+-- explicit anon/authenticated grant existed, only PUBLIC). So the grant to
+-- revoke is PUBLIC's, which also covers anon and authenticated. Idempotent:
+-- revoking a privilege that isn't held is a no-op.
+revoke execute on function public.handle_new_user() from public;
