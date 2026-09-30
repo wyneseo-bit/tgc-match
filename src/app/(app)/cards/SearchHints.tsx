@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { X } from "@phosphor-icons/react";
 import type { IgnoreKey, SearchInterpretation } from "@/lib/card-filters";
 
 function Chip({
@@ -15,18 +15,16 @@ function Chip({
   removeLabel: string;
 }) {
   return (
-    <span
-      className="flex items-center gap-1.5 rounded-pill py-1 pl-3 pr-2 text-xs"
-      style={{
-        background: "var(--color-indigo-tint)",
-        border: "1px solid var(--color-indigo-ring)",
-        color: "var(--color-indigo-light)",
-      }}
-    >
-      <span style={{ color: "var(--color-muted)" }}>{label}</span>
+    <span className="flex h-8 items-center gap-1.5 rounded-full bg-pear/12 pl-3 pr-1.5 text-xs font-medium text-pear ring-1 ring-inset ring-pear/30">
+      <span className="text-muted">{label}</span>
       {value}
-      <button type="button" aria-label={removeLabel} onClick={onRemove}>
-        <X size={13} strokeWidth={2} />
+      <button
+        type="button"
+        aria-label={removeLabel}
+        onClick={onRemove}
+        className="grid size-6 place-items-center rounded-full hover:bg-pear/15"
+      >
+        <X size={12} weight="bold" aria-hidden />
       </button>
     </span>
   );
@@ -43,8 +41,7 @@ function LinkButton({
     <button
       type="button"
       onClick={onClick}
-      className="text-xs font-medium underline"
-      style={{ color: "var(--color-indigo-light)" }}
+      className="text-xs font-medium text-pear underline-offset-4 hover:underline"
     >
       {children}
     </button>
@@ -77,16 +74,16 @@ export function SearchHints({
   return (
     <div className="flex flex-col gap-2">
       {corrections.length > 0 && (
-        <p className="text-sm" style={{ color: "var(--color-text-2-body)" }}>
+        <p className="text-sm text-fg-2">
           Showing results for{" "}
-          <span className="font-semibold" style={{ color: "var(--color-text)" }}>
+          <span className="font-semibold text-fg">
             {searchedName}
           </span>
           . <LinkButton onClick={() => onToggle("typo")}>Search instead for &quot;{query.trim()}&quot;</LinkButton>
         </p>
       )}
       {spellingOff && (
-        <p className="text-xs" style={{ color: "var(--color-muted)" }}>
+        <p className="text-xs text-muted">
           Searching exactly as typed.{" "}
           <LinkButton onClick={() => onToggle("typo")}>Fix spelling</LinkButton>
         </p>
@@ -112,14 +109,7 @@ export function SearchHints({
           )}
           {delta === "marker" && (
             <>
-              <span
-                className="rounded-pill px-3 py-1 text-xs"
-                style={{
-                  background: "var(--color-indigo-tint)",
-                  border: "1px solid var(--color-indigo-ring)",
-                  color: "var(--color-indigo-light)",
-                }}
-              >
+              <span className="flex h-8 items-center rounded-full bg-pear/12 px-3 text-xs font-medium text-pear ring-1 ring-inset ring-pear/30">
                 δ Delta cards
               </span>
               <LinkButton onClick={() => onToggle("delta")}>

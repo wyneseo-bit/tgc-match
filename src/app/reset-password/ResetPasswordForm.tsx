@@ -1,10 +1,11 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Key } from "lucide-react";
-import { Mascot } from "@/components/Mascot";
+import { Key } from "@phosphor-icons/react";
+import { Logo } from "@/components/Logo";
 import { PasswordInput } from "@/components/PasswordInput";
 import { PasswordRules, passwordMeetsRules } from "@/components/PasswordRules";
+import { Button } from "@/components/ui";
 import { updatePassword } from "./actions";
 
 export function ResetPasswordForm({ email }: { email: string }) {
@@ -17,35 +18,28 @@ export function ResetPasswordForm({ email }: { email: string }) {
   const canSubmit = rulesMet && matches;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-[620px] flex-col px-10 py-8">
-      <div className="flex items-center gap-2.5">
-        <Mascot mood="curious" size={26} color="indigo" />
-        <span className="text-[15px] font-bold">TCG Trade Matcher</span>
+    <main className="room flex min-h-dvh flex-col px-4 py-6 sm:px-10 sm:py-8">
+      <div className="mx-auto w-full max-w-[620px]">
+        <Logo />
       </div>
 
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center py-10">
         <div className="flex w-full max-w-[400px] flex-col gap-6">
-          <div
-            className="flex h-12 w-12 items-center justify-center rounded-btn"
-            style={{ background: "var(--color-surface)", border: "1px solid var(--color-border-strong)" }}
-          >
-            <Key size={20} strokeWidth={2} color="var(--color-indigo-light)" />
-          </div>
+          <span className="grid size-12 place-items-center rounded-md bg-page text-pear ring-1 ring-inset ring-line-2">
+            <Key size={22} weight="bold" aria-hidden />
+          </span>
 
-          <div className="flex flex-col gap-1.5">
-            <h1 className="text-[30px] font-bold tracking-tight">Set a new password</h1>
-            <span className="text-sm" style={{ color: "var(--color-muted)" }}>
-              For {email}
-            </span>
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-tight">Set a new password</h1>
+            <p className="mt-1.5 text-muted">For {email}</p>
           </div>
 
           <form action={formAction} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <span className="text-[13px] font-medium" style={{ color: "var(--color-text-2-body)" }}>
-                New password
-              </span>
+              <span className="text-sm font-medium text-fg-2">New password</span>
               <PasswordInput
                 name="password"
+                label="New password"
                 placeholder="••••••••••••"
                 required
                 value={password}
@@ -54,11 +48,10 @@ export function ResetPasswordForm({ email }: { email: string }) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <span className="text-[13px] font-medium" style={{ color: "var(--color-text-2-body)" }}>
-                Confirm password
-              </span>
+              <span className="text-sm font-medium text-fg-2">Confirm password</span>
               <PasswordInput
                 name="confirmPassword"
+                label="Confirm password"
                 placeholder="••••••••••••"
                 required
                 value={confirm}
@@ -69,24 +62,13 @@ export function ResetPasswordForm({ email }: { email: string }) {
 
             <PasswordRules password={password} />
 
-            {state?.error && (
-              <p className="text-sm" style={{ color: "var(--color-danger)" }}>
-                {state.error}
-              </p>
-            )}
+            {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
-            <button
-              type="submit"
-              disabled={pending || !canSubmit}
-              className="gradient-primary flex h-12 items-center justify-center rounded-btn text-[15px] font-medium text-white disabled:opacity-50"
-              style={{ boxShadow: "var(--shadow-cta)" }}
-            >
-              {pending ? "Saving…" : "Update Password"}
-            </button>
+            <Button type="submit" size="lg" disabled={pending || !canSubmit} className="mt-2 w-full text-[15px]">
+              {pending ? "Saving…" : "Update password"}
+            </Button>
 
-            <span className="text-center text-xs" style={{ color: "var(--color-muted)" }}>
-              You&apos;ll be logged out on all other devices.
-            </span>
+            <span className="text-center text-xs text-muted">You&apos;ll be logged out on all other devices.</span>
           </form>
         </div>
       </div>

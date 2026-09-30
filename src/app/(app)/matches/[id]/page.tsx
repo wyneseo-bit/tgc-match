@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, MapPin, BadgeCheck } from "lucide-react";
+import { ArrowLeft, CalendarBlank, Check, MapPin } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import type { MatchedCard } from "@/lib/matching";
-import { MatchRing } from "@/components/MatchRing";
-import { TcgCard } from "@/components/TcgCard";
+import { CONDITION_OPTIONS, satisfiesCondition } from "@/lib/card-condition";
+import { TcgCard } from "@/components/Card";
+import { Avatar } from "@/components/Collector";
+import { MatchStage, type StageCard } from "@/components/MatchStage";
+import { IdentityBadge, Panel } from "@/components/ui";
 import { ContactReveal } from "../ContactReveal";
+
+export const metadata = { title: "Match" };
 
 type MatchRow = {
   id: string;
@@ -32,6 +37,14 @@ function timeAgo(iso: string, now: number) {
   if (diffHr < 24) return `${diffHr} hr ago`;
   const diffDay = Math.floor(diffHr / 24);
   return `${diffDay} day${diffDay === 1 ? "" : "s"} ago`;
+}
+
+function conditionLabel(value: string | null) {
+  return CONDITION_OPTIONS.find((o) => o.value === value)?.label ?? null;
+}
+
+function meetsWant(c: MatchedCard) {
+  return !!c.have_condition && !!c.want_condition && satisfiesCondition(c.have_condition, c.want_condition);
 }
 
 export default async function MatchDetailPage({
@@ -64,7 +77,7 @@ export default async function MatchDetailPage({
   const [{ data: counterpart }, { data: cards }] = await Promise.all([
     supabase
       .from("users")
-      .select("id, display_name, location, verified")
+      .select("id, display_name, location, verified, created_at")
       .eq("id", counterpartId)
       .single(),
     cardIds.length
@@ -84,131 +97,144 @@ export default async function MatchDetailPage({
     isA ? c.direction === "b_gives" : c.direction === "a_gives",
   );
 
-  const heroGive = cardById.get(iGive[0]?.card_id ?? "");
-  const heroGet = cardById.get(iGet[0]?.card_id ?? "");
+  const toStage = (c: MatchedCard): StageCard => ({
+    key: `${c.direction}-${c.card_id}`,
+    card: cardById.get(c.card_id) ?? { name: c.card_id, image_url: null },
+    condition: conditionLabel(c.have_condition),
+  });
 
   // Server Component: renders once per request, so this reads "now" for
   // display, not a re-render-unsafe impurity.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
 
+  const name = counterpart?.display_name ?? "Unknown trader";
+  const meeting = match.matched_cards.filter(meetsWant).length;
+  const reasons = [
+    `They have ${iGet.length} card${iGet.length === 1 ? "" : "s"} from your want list`,
+    `They want ${iGive.length} card${iGive.length === 1 ? "" : "s"} you'd trade`,
+    `${meeting} of ${match.matched_cards.length} cards meet the condition asked for`,
+    counterpart?.verified ? `${name}'s identity is verified` : `Discovered ${timeAgo(match.created_at, now)}`,
+  ];
+
+  const memberSince = counterpart?.created_at
+    ? new Date(counterpart.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
+    : null;
+
+  const rows = [
+    ...iGive.map((c) => ({ c, side: "You give" })),
+    ...iGet.map((c) => ({ c, side: "You receive" })),
+  ];
+
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-10">
-      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-muted)" }}>
-        <Link href="/matches" className="hover:underline">
-          Matches
-        </Link>
-        <ChevronRight size={14} strokeWidth={2} />
-        <span style={{ color: "var(--color-text-2-body)" }}>
-          {counterpart?.display_name ?? "Unknown trader"}
-        </span>
-      </div>
+    <div>
+      <Link href="/matches" className="-ml-1 inline-flex h-11 items-center gap-2 px-1 text-sm text-muted hover:text-fg">
+        <ArrowLeft size={16} aria-hidden /> All matches
+      </Link>
 
-      <div className="flex flex-col items-center gap-2 text-center">
-        <span
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ color: "var(--color-violet)" }}
-        >
+      <header className="mt-1">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pear/80">
           Discovered {timeAgo(match.created_at, now)}
-        </span>
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">We found a match.</h1>
+        </p>
+        <h1 className="mt-2 font-display text-4xl font-bold tracking-tight md:text-5xl">We found a match.</h1>
+        <p className="mt-2 text-lg text-muted">
+          {name} has what you&apos;re looking for, and wants what you have.
+        </p>
+      </header>
+
+      <div className="mt-8">
+        <MatchStage
+          score={match.match_score}
+          give={iGive.map(toStage)}
+          receive={iGet.map(toStage)}
+          them={{ id: counterpartId, name, verified: counterpart?.verified ?? false }}
+        />
       </div>
 
-      <div className="grid grid-cols-1 items-center gap-8 px-6 sm:grid-cols-[1fr_auto_1fr] sm:gap-6">
-        <div className="flex flex-col items-center gap-4">
-          {heroGive && (
-            <TcgCard width={200} imageUrl={heroGive.image_url} alt={heroGive.name} />
-          )}
-          <div className="text-center">
-            <p className="text-xs uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
-              You have
-            </p>
-            {heroGive && (
-              <>
-                <p className="font-semibold">{heroGive.name}</p>
-                <p className="text-xs" style={{ color: "var(--color-muted)" }}>
-                  {heroGive.set_name} · #{heroGive.card_number}
-                </p>
-              </>
-            )}
-          </div>
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="space-y-6">
+          <Panel className="p-5 md:p-7">
+            <h2 className="font-display text-xl font-semibold tracking-tight">Why this is a match</h2>
+            <ul className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              {reasons.map((r) => (
+                <li key={r} className="flex items-start gap-3 text-fg-2">
+                  <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-pear/15 text-pear">
+                    <Check size={12} weight="bold" aria-hidden />
+                  </span>
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </Panel>
+
+          <Panel className="p-5 md:p-7">
+            <h2 className="font-display text-xl font-semibold tracking-tight">What&apos;s being matched</h2>
+            <ul className="mt-4 divide-y divide-line">
+              {rows.map(({ c, side }) => {
+                const card = cardById.get(c.card_id);
+                const have = conditionLabel(c.have_condition);
+                const want = conditionLabel(c.want_condition);
+                return (
+                  <li key={`${c.direction}-${c.card_id}`} className="flex items-center gap-4 py-3">
+                    <div className="w-11 shrink-0">
+                      <TcgCard card={card ?? { name: c.card_id, image_url: null }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs text-muted">{side}</div>
+                      <div className="truncate font-medium text-fg">{card?.name ?? c.card_id}</div>
+                      {card && (
+                        <div className="truncate text-xs text-muted">
+                          {card.set_name}, #{card.card_number}
+                        </div>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right text-xs">
+                      {have && <div className="text-fg-2">{have}</div>}
+                      {want && (
+                        <div className={meetsWant(c) ? "text-pear" : "text-warn"}>
+                          Wants {want} or better
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </Panel>
         </div>
 
-        <MatchRing score={match.match_score} />
-
-        <div className="flex flex-col items-center gap-4">
-          {heroGet && (
-            <TcgCard width={200} imageUrl={heroGet.image_url} alt={heroGet.name} />
-          )}
-          <div className="text-center">
-            <p className="text-xs uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
-              They have
-            </p>
-            {heroGet && (
-              <>
-                <p className="font-semibold">{heroGet.name}</p>
-                <p className="text-xs" style={{ color: "var(--color-muted)" }}>
-                  {heroGet.set_name} · #{heroGet.card_number}
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="glass flex flex-col gap-3 rounded-card p-6">
-          <h2 className="font-semibold">What&apos;s being matched</h2>
-          <div className="flex flex-col gap-2">
-            {iGive.map((c) => {
-              const card = cardById.get(c.card_id);
-              return (
-                <div key={`give-${c.card_id}`} className="flex items-center justify-between text-sm">
-                  <span style={{ color: "var(--color-coral)" }}>You give</span>
-                  <span className="text-right font-medium">{card?.name ?? c.card_id}</span>
+        <aside className="space-y-4">
+          <section className="rounded-lg bg-page ring-1 ring-inset ring-line" aria-label={`About ${name}`}>
+            <div className="p-5">
+              <div className="flex items-center gap-3">
+                <Avatar seed={counterpartId} verified={counterpart?.verified ?? false} size={48} />
+                <div className="min-w-0">
+                  <div className="truncate font-medium text-fg">{name}</div>
+                  {counterpart?.location && (
+                    <div className="flex items-center gap-1 text-sm text-muted">
+                      <MapPin size={14} aria-hidden /> {counterpart.location}
+                    </div>
+                  )}
                 </div>
-              );
-            })}
-            {iGet.map((c) => {
-              const card = cardById.get(c.card_id);
-              return (
-                <div key={`get-${c.card_id}`} className="flex items-center justify-between text-sm">
-                  <span style={{ color: "var(--color-cyan)" }}>You get</span>
-                  <span className="text-right font-medium">{card?.name ?? c.card_id}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div
-          className="flex flex-col gap-4 rounded-card p-6"
-          style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
-        >
-          <h2 className="font-semibold">Trading with {counterpart?.display_name}</h2>
-          {counterpart?.verified && (
-            <span
-              className="flex w-fit items-center gap-1.5 rounded-pill px-2.5 py-1 text-xs font-semibold"
-              style={{ color: "var(--color-cyan)", background: "var(--color-cyan-tint)" }}
-            >
-              <BadgeCheck size={13} strokeWidth={2} />
-              Identity Verified
-            </span>
-          )}
-          {counterpart?.location && (
-            <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--color-muted)" }}>
-              <MapPin size={14} strokeWidth={2} />
-              {counterpart.location}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-center gap-4">
-        <ContactReveal matchId={match.id} featured />
-        <Link href="/matches" className="text-sm underline" style={{ color: "var(--color-muted)" }}>
-          Back to matches
-        </Link>
+              </div>
+              <div className="mt-4">
+                <IdentityBadge verified={counterpart?.verified ?? false} />
+              </div>
+              {counterpart?.verified && (
+                <p className="mt-3 text-[13px] leading-relaxed text-muted">
+                  {name}&apos;s identity was checked by our verification provider. It confirms who they are, not how they trade.
+                </p>
+              )}
+            </div>
+            {memberSince && (
+              <div className="flex items-center gap-2 border-t border-line px-5 py-3.5 text-sm text-fg-2">
+                <CalendarBlank size={15} className="text-muted" aria-hidden /> Member since {memberSince}
+              </div>
+            )}
+          </section>
+          <ContactReveal matchId={match.id} size="lg" variant="primary" className="w-full" />
+          <p className="text-center text-xs text-muted">Reveal {name}&apos;s email to arrange the trade.</p>
+        </aside>
       </div>
     </div>
   );

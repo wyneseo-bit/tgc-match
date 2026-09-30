@@ -1,7 +1,12 @@
-import { BadgeCheck, MapPin } from "lucide-react";
+import { CalendarBlank, MapPin, SignOut } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
-import { Mascot } from "@/components/Mascot";
+import { signOut } from "@/app/login/actions";
+import { Pocket } from "@/components/Pocket";
+import { sleeveFor } from "@/components/Collector";
 import { ProfileTabs, type ProfileCardItem } from "@/components/ProfileTabs";
+import { ButtonLink, buttonClass, IdentityBadge } from "@/components/ui";
+
+export const metadata = { title: "Profile" };
 
 type CollectionRow = {
   id: string;
@@ -16,17 +21,16 @@ type WantRow = {
 };
 
 const TRADE_STATUS_LABEL: Record<CollectionRow["trade_status"], string> = {
-  keep: "Keep",
+  keep: "Keeping",
   maybe: "Maybe",
-  available: "Available",
+  available: "For trade",
   for_sale: "For sale",
 };
 
-const TRADE_STATUS_COLOR: Record<CollectionRow["trade_status"], string> = {
-  keep: "var(--color-muted)",
-  maybe: "var(--color-muted)",
-  available: "var(--color-cyan)",
-  for_sale: "var(--color-cyan)",
+const TRADE_STATUS_TAB: Partial<Record<CollectionRow["trade_status"], string>> = {
+  available: "Trade",
+  maybe: "Maybe",
+  for_sale: "Sale",
 };
 
 const PRIORITY_LABEL: Record<WantRow["priority"], string> = {
@@ -70,7 +74,7 @@ export default async function ProfilePage() {
     cardNumber: row.card?.card_number ?? "",
     imageUrl: row.card?.image_url ?? null,
     statusLabel: TRADE_STATUS_LABEL[row.trade_status],
-    statusColor: TRADE_STATUS_COLOR[row.trade_status],
+    tab: TRADE_STATUS_TAB[row.trade_status],
   });
 
   const collectionItems = (collection ?? []).map(toCollectionItem);
@@ -84,7 +88,6 @@ export default async function ProfilePage() {
     cardNumber: row.card?.card_number ?? "",
     imageUrl: row.card?.image_url ?? null,
     statusLabel: PRIORITY_LABEL[row.priority],
-    statusColor: "var(--color-muted)",
   }));
 
   const memberSince = profile?.created_at
@@ -94,66 +97,76 @@ export default async function ProfilePage() {
       })
     : null;
 
+  const displayName = profile?.display_name ?? user.email ?? "Trader";
+
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <div
-          className="relative h-[120px] rounded-card"
-          style={{
-            background:
-              "radial-gradient(400px 200px at 20% 0%, rgba(108,99,255,0.25), transparent 60%), radial-gradient(300px 150px at 80% 100%, rgba(66,217,232,0.2), transparent 60%), var(--color-bg-2)",
-          }}
-        >
-          <div className="absolute bottom-2 right-4">
-            <Mascot mood="curious" size={64} color="cyan" />
-          </div>
-        </div>
-
-        <div className="flex items-end gap-4 px-2">
-          <div
-            className="z-10 flex h-24 w-24 flex-none items-center justify-center rounded-full border-4 text-3xl font-bold text-white"
-            style={{
-              marginTop: -40,
-              background: "linear-gradient(135deg,#FF8A7A,#A66CFF)",
-              borderColor: "var(--color-bg)",
-            }}
-          >
-            {(profile?.display_name ?? user.email ?? "?").charAt(0).toUpperCase()}
-          </div>
-          <div className="flex flex-1 flex-col gap-1 pb-2">
-            <div className="flex items-center gap-2">
-              <h1 className="text-[28px] font-bold tracking-tight">
-                {profile?.display_name ?? user.email}
-              </h1>
-              {profile?.verified && (
-                <span
-                  className="flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-xs font-semibold"
-                  style={{ color: "var(--color-cyan)", background: "var(--color-cyan-tint)" }}
-                >
-                  <BadgeCheck size={13} strokeWidth={2} />
-                  Identity Verified
-                </span>
-              )}
+    <div>
+      {/* Identity */}
+      <header className="relative overflow-hidden rounded-xl bg-cover p-5 ring-1 ring-inset ring-line md:p-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center">
+          <div className="flex min-w-0 items-center gap-5">
+            <div className="grid size-24 shrink-0 place-items-center rounded-[28%] bg-page-2 ring-1 ring-inset ring-line-2 md:size-28">
+              <Pocket crop="face" sleeve={sleeveFor(user.id)} size={92} animate={false} />
             </div>
-            <div className="flex items-center gap-3 text-sm" style={{ color: "var(--color-muted)" }}>
-              {profile?.location && (
-                <span className="flex items-center gap-1">
-                  <MapPin size={13} strokeWidth={2} />
-                  {profile.location}
-                </span>
-              )}
-              {memberSince && <span>Member since {memberSince}</span>}
+            <div className="min-w-0">
+              <h1 className="truncate font-display text-3xl font-bold tracking-tight md:text-4xl">{displayName}</h1>
+              {user.email && <div className="mt-0.5 truncate text-muted">{user.email}</div>}
+              <div className="mt-3">
+                <IdentityBadge verified={profile?.verified ?? false} />
+              </div>
             </div>
           </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-fg-2 md:ml-auto md:flex-col md:items-end md:text-right">
+            {profile?.location && (
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin size={15} className="text-muted" aria-hidden /> {profile.location}
+              </span>
+            )}
+            {memberSince && (
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarBlank size={15} className="text-muted" aria-hidden /> Member since {memberSince}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+        <div className="mt-6 flex flex-wrap gap-3 border-t border-line pt-5">
+          <ButtonLink href="/collection" variant="secondary">
+            Open binder
+          </ButtonLink>
+          <ButtonLink href="/matches" variant="ghost">
+            See matches
+          </ButtonLink>
+          <form action={signOut} className="ml-auto">
+            <button type="submit" className={buttonClass("ghost")}>
+              <SignOut size={16} aria-hidden /> Log out
+            </button>
+          </form>
+        </div>
+      </header>
 
-      <p className="text-xs" style={{ color: "var(--color-muted)" }}>
-        Identity verification confirms who someone is — it doesn&apos;t reflect trade
-        history or reputation.
-      </p>
+      {/* Counts */}
+      <section aria-label="Your cards" className="mt-6 rounded-lg bg-page ring-1 ring-inset ring-line">
+        <dl className="grid grid-cols-3 divide-x divide-line">
+          {[
+            [collectionItems.length, "Cards"],
+            [wantItems.length, "Wants"],
+            [availableItems.length, "Up for trade"],
+          ].map(([v, k]) => (
+            <div key={k} className="flex flex-col-reverse px-5 py-5 md:px-7">
+              <dt className="mt-1 text-sm text-muted">{k}</dt>
+              <dd className="font-display text-2xl font-semibold tracking-tight tabular-nums md:text-3xl">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="border-t border-line px-5 py-4 text-sm text-muted md:px-7">
+          Identity Verified means your identity was confirmed by our verification provider. It doesn&apos;t rate
+          trading behaviour or reputation.
+        </p>
+      </section>
 
-      <ProfileTabs available={availableItems} collection={collectionItems} wants={wantItems} />
+      <section aria-label="Cards" className="mt-10">
+        <ProfileTabs available={availableItems} collection={collectionItems} wants={wantItems} />
+      </section>
     </div>
   );
 }

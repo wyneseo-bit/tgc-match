@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { GoogleLogo } from "@phosphor-icons/react";
 import { signInWithGoogle } from "@/app/login/actions";
+import { buttonClass } from "./ui";
 
 export function GoogleButton() {
   const [pending, startTransition] = useTransition();
@@ -22,22 +24,12 @@ export function GoogleButton() {
         type="button"
         disabled={pending}
         onClick={handleClick}
-        className="flex h-12 items-center justify-center gap-2.5 rounded-btn text-sm font-medium disabled:opacity-50"
-        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border-strong)" }}
+        className={buttonClass("secondary", "lg", "w-full text-[15px]")}
       >
-        <span
-          className="flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold"
-          style={{ background: "var(--color-text)", color: "var(--color-bg)" }}
-        >
-          G
-        </span>
-        Continue with Google
+        <GoogleLogo size={18} weight="bold" aria-hidden />
+        {pending ? "Redirecting…" : "Continue with Google"}
       </button>
-      {error && (
-        <span className="text-xs" style={{ color: "var(--color-danger)" }}>
-          {error}
-        </span>
-      )}
+      {error && <span className="text-xs text-danger">{error}</span>}
     </div>
   );
 }

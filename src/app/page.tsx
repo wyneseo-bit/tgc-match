@@ -1,20 +1,33 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Sparkles, BadgeCheck, MapPin, ArrowLeftRight, Library, Heart } from "lucide-react";
+import { Check, EnvelopeSimple, SealCheck, UserFocus } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
-import { Mascot } from "@/components/Mascot";
-import { TcgCard } from "@/components/TcgCard";
+import { HeroBinders } from "@/components/landing/HeroBinders";
+import { LoopTabs } from "@/components/landing/LoopTabs";
+import { NetworkScene } from "@/components/landing/NetworkScene";
+import { Avatar } from "@/components/Collector";
+import { Logo } from "@/components/Logo";
+import { MatchCard } from "@/components/MatchCard";
+import { Pocket } from "@/components/Pocket";
+import { Reveal } from "@/components/Reveal";
+import { ButtonLink } from "@/components/ui";
+import { DEMO_CARDS, DEMO_COLLECTOR } from "@/lib/demo";
 
-const ACTIVE_GAME = "Pokémon";
 const COMING_SOON_GAMES = ["One Piece", "Magic: The Gathering", "Yu-Gi-Oh!"];
 
-const LOOP = [
-  { n: "01", icon: Library, color: "var(--color-indigo-light)", title: "I have", desc: "Add the cards you're willing to trade." },
-  { n: "02", icon: Heart, color: "var(--color-coral)", title: "I want", desc: "List the cards you're hunting for." },
-  { n: "03", icon: Sparkles, color: "var(--color-violet)", title: "Find matches", desc: "The network finds two-way trades for you." },
-  { n: "04", icon: ArrowLeftRight, color: "var(--color-indigo-light)", title: "Trade", desc: "Propose, confirm, ship or meet up." },
-  { n: "05", icon: BadgeCheck, color: "var(--color-cyan)", title: "Build trust", desc: "Every trade gets a verified Trade ID." },
+const REASONS = [
+  "They have 1 card from your want list",
+  "They want 1 card you'd trade",
+  "Both cards meet the condition asked for",
+  "Their identity is verified",
 ];
+
+const side = (c: (typeof DEMO_CARDS)[keyof typeof DEMO_CARDS]) => ({
+  name: c.name,
+  setName: c.set_name,
+  cardNumber: c.card_number,
+  imageUrl: c.image_url,
+});
 
 export default async function Home() {
   const supabase = await createClient();
@@ -26,229 +39,219 @@ export default async function Home() {
     redirect("/matches");
   }
 
+  const marquee = Object.values(DEMO_CARDS);
+
   return (
-    <main
-      className="flex flex-1 flex-col"
-      style={{
-        background:
-          "radial-gradient(800px 600px at 78% 35%, rgba(108,99,255,0.20), transparent 60%), radial-gradient(600px 400px at 95% 80%, rgba(66,217,232,0.07), transparent 60%), var(--color-bg)",
-      }}
-    >
-      {/* Top nav */}
-      <div className="border-b border-border">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-3 px-4 py-5 sm:px-10 md:px-16">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <Mascot mood="curious" size={30} color="indigo" className="flex-none" />
-            <span className="whitespace-nowrap text-base font-bold tracking-tight">
-              <span className="hidden sm:inline">TCG </span>Trade Matcher
-            </span>
-          </div>
-          <div className="hidden gap-8 text-sm md:flex" style={{ color: "var(--color-text-nav)" }}>
-            <a href="#how-it-works" className="hover:text-text">
+    <div className="room min-h-dvh overflow-x-clip">
+      {/* Nav */}
+      <div className="sticky top-3 z-40 px-3 md:top-4 md:px-6">
+        <nav
+          aria-label="Main"
+          className="glass mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 rounded-full pl-4 pr-2 md:pl-6"
+        >
+          <Logo />
+          <div className="hidden items-center gap-1 text-sm text-fg-2 md:flex">
+            <a href="#how" className="rounded-full px-4 py-2 hover:bg-white/5 hover:text-fg">
               How it works
             </a>
-            <span>Games</span>
-            <span>Trust &amp; Safety</span>
-            <span>Community</span>
+            <a href="#trust" className="rounded-full px-4 py-2 hover:bg-white/5 hover:text-fg">
+              Trust
+            </a>
+            <Link href="/characters" className="rounded-full px-4 py-2 hover:bg-white/5 hover:text-fg">
+              Meet Pocket
+            </Link>
           </div>
-          <div className="flex flex-none items-center gap-2">
-            <Link
-              href="/login"
-              className="hidden h-10 items-center whitespace-nowrap px-4 text-sm sm:flex"
-              style={{ color: "var(--color-text-2-body)" }}
-            >
+          <div className="flex items-center gap-1">
+            <Link href="/login" className="hidden h-11 items-center rounded-full px-4 text-sm text-fg-2 hover:text-fg sm:inline-flex">
               Log in
             </Link>
-            <Link
-              href="/signup"
-              className="gradient-primary flex h-10 items-center whitespace-nowrap rounded-btn px-3.5 text-sm font-medium text-white sm:px-4.5"
-            >
-              Find Matches
-            </Link>
+            <ButtonLink href="/signup">Find matches</ButtonLink>
           </div>
-        </div>
+        </nav>
       </div>
 
       {/* Hero */}
-      <div className="mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-6 px-6 py-14 sm:px-10 md:px-16 md:py-20 lg:grid-cols-[minmax(0,1fr)_620px]">
-        <div className="flex flex-col gap-7">
-          <span
-            className="glass flex w-fit items-center gap-2 rounded-pill py-1.5 pl-2 pr-3 text-[13px]"
-            style={{ color: "var(--color-text-2-body)" }}
-          >
-            <span
-              className="h-2 w-2 rounded-full"
-              style={{ background: "var(--color-cyan)", boxShadow: "0 0 10px var(--color-cyan)" }}
-            />
-            A trusted trading network for TCG collectors
-          </span>
-
-          <h1 className="text-5xl font-bold leading-[1.0] tracking-tight sm:text-6xl lg:text-[76px] lg:leading-[1.0] lg:tracking-[-0.035em]">
-            Find your
-            <br />
-            next trade.
+      <section className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-16 pt-12 md:px-8 lg:min-h-[calc(100dvh-5rem)] lg:grid-cols-[0.8fr_1.2fr] lg:gap-10 lg:pb-12 lg:pt-8">
+        <div>
+          <h1 className="font-display text-5xl font-bold leading-[0.98] tracking-[-0.035em] [font-stretch:92%] md:text-7xl">
+            Find your next trade.
           </h1>
-
-          <p
-            className="max-w-[500px] text-lg leading-relaxed"
-            style={{ color: "var(--color-text-nav)" }}
-          >
-            Tell us what you have and what you want. We&apos;ll find the collectors
-            you can trade with — and help you know who you can trust.
+          <p className="mt-6 max-w-[40ch] text-lg leading-relaxed text-fg-2">
+            List what you have and what you want. We find the collectors you can trade with, and show who you can trust.
           </p>
-
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/signup"
-              className="gradient-primary flex h-13 items-center gap-2 rounded-btn px-6 text-base font-medium text-white"
-              style={{ boxShadow: "var(--shadow-cta)" }}
-            >
-              <Sparkles size={18} strokeWidth={2} />
-              Find Matches
-            </Link>
-            <a
-              href="#how-it-works"
-              className="flex h-13 items-center rounded-btn border border-border-strong px-6 text-base font-medium"
-              style={{ background: "var(--color-surface)", color: "var(--color-text-2)" }}
-            >
-              See How It Works
-            </a>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <ButtonLink href="/signup" size="lg">
+              Find matches
+            </ButtonLink>
+            <ButtonLink href="#how" variant="secondary" size="lg">
+              See how it works
+            </ButtonLink>
           </div>
+          <p className="mt-6 text-sm text-muted sm:hidden">
+            Already collecting here?{" "}
+            <Link href="/login" className="font-medium text-pear">
+              Log in
+            </Link>
+          </p>
+        </div>
+        <HeroBinders />
+      </section>
 
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <span
-              className="text-xs font-semibold uppercase tracking-wide"
-              style={{ color: "var(--color-muted)" }}
-            >
-              Works with
-            </span>
-            <span
-              className="rounded-pill px-3 py-1.5 text-[13px]"
-              style={{ color: "var(--color-text-2-body)", border: "1px solid var(--color-border-strong)", background: "var(--color-bg-2)" }}
-            >
-              {ACTIVE_GAME}
-            </span>
-            {COMING_SOON_GAMES.map((g) => (
-              <span
-                key={g}
-                className="rounded-pill px-3 py-1.5 text-[13px] opacity-40"
-                style={{ color: "var(--color-text-2-body)", border: "1px solid var(--color-border-strong)", background: "var(--color-bg-2)" }}
-              >
-                {g} · soon
-              </span>
+      {/* Games strip: the one marquee */}
+      <section aria-label="Supported games" className="border-y border-line bg-cover/60 py-8">
+        <p className="mx-auto max-w-6xl px-4 text-center text-sm text-muted md:px-8">
+          Pokémon today. {COMING_SOON_GAMES.join(", ")} coming soon. One network for every binder.
+        </p>
+        <div className="relative mt-6 overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_10%,#000_90%,transparent)]">
+          <div className="flex w-max animate-marquee gap-4 hover:[animation-play-state:paused]">
+            {[...marquee, ...marquee].map((c, i) => (
+              <div key={i} className="relative aspect-[63/88] w-24 shrink-0 overflow-hidden rounded-[5%/3.5%] md:w-28">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={c.image_url}
+                  alt={i < marquee.length ? c.name : ""}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Hero visual */}
-        <div className="relative hidden h-[560px] lg:block">
-          <svg viewBox="0 0 620 560" width={620} height={560} className="absolute inset-0">
-            <g stroke="rgba(143,136,255,0.28)" fill="none" strokeWidth={1.2}>
-              <path d="M190 330 C 260 250, 330 210, 430 170" />
-              <path d="M190 330 C 120 250, 90 180, 70 110" />
-              <path d="M190 330 C 260 400, 380 440, 520 440" />
-              <path d="M70 110 C 160 70, 260 60, 330 70" />
-              <path d="M430 170 C 470 250, 520 320, 520 440" />
-              <path d="M60 470 C 100 420, 140 380, 190 330" />
-            </g>
-            <path
-              d="M190 330 C 260 250, 330 210, 430 170"
-              stroke="url(#landingLineGradient)"
-              fill="none"
-              strokeWidth={2}
+      {/* How it works */}
+      <section id="how" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-24 md:px-8 md:py-32">
+        <Reveal>
+          <h2 className="max-w-[18ch] font-display text-4xl font-bold tracking-tight md:text-5xl">
+            Your binder, connected to everyone else&apos;s.
+          </h2>
+        </Reveal>
+        <Reveal delay={0.1} className="mt-12">
+          <LoopTabs />
+        </Reveal>
+      </section>
+
+      {/* Why this is a match */}
+      <section className="mx-auto max-w-6xl px-4 pb-24 md:px-8 md:pb-32">
+        <div className="grid items-center gap-12 lg:grid-cols-[1fr_440px] lg:gap-20">
+          <Reveal>
+            <h2 className="font-display text-4xl font-bold tracking-tight md:text-5xl">You&apos;ll always know why.</h2>
+            <p className="mt-4 max-w-[46ch] text-lg text-fg-2">
+              A score means nothing without reasons. Every match shows exactly what lined up.
+            </p>
+            <ul className="mt-8 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+              {REASONS.map((r) => (
+                <li key={r} className="flex items-center gap-3 text-fg">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-pear/15 text-pear">
+                    <Check size={13} weight="bold" aria-hidden />
+                  </span>
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <MatchCard
+              id="demo"
+              href="/signup"
+              score={96}
+              isNew
+              youGive={[side(DEMO_CARDS.charizardEx)]}
+              youGet={[side(DEMO_CARDS.umbreon)]}
+              counterpartId={DEMO_COLLECTOR.id}
+              counterpartName={DEMO_COLLECTOR.name}
+              counterpartVerified
+              counterpartLocation={DEMO_COLLECTOR.location}
+              featured
             />
-            <defs>
-              <linearGradient id="landingLineGradient" x1="0" x2="1">
-                <stop offset="0" stopColor="#6C63FF" />
-                <stop offset="1" stopColor="#42D9E8" />
-              </linearGradient>
-            </defs>
-            <g fill="#6C63FF">
-              <circle cx={70} cy={110} r={4} opacity={0.6} />
-              <circle cx={330} cy={70} r={3} opacity={0.5} />
-              <circle cx={520} cy={440} r={4} opacity={0.6} />
-              <circle cx={60} cy={470} r={3} opacity={0.5} />
-            </g>
-            <circle cx={430} cy={170} r={7} fill="#42D9E8" />
-            <circle cx={430} cy={170} r={16} fill="none" stroke="#42D9E8" opacity={0.35} />
-          </svg>
+          </Reveal>
+        </div>
+      </section>
 
-          <div className="absolute left-9 top-15 -rotate-[8deg]">
-            <TcgCard width={112} name="Mew ex" code="205" tone="violet" alt="Mew ex" />
-          </div>
-          <div className="absolute left-[470px] top-75 rotate-[7deg]">
-            <TcgCard width={104} name="Blue-Eyes" code="001" tone="cyan" alt="Blue-Eyes" />
-          </div>
-          <div className="absolute left-20 top-[250px]">
-            <Mascot mood="searching" size={210} color="indigo" />
-          </div>
+      {/* Trust: the serious inside */}
+      <section id="trust" className="scroll-mt-24 border-t border-line bg-cover/50">
+        <div className="mx-auto max-w-6xl px-4 py-24 md:px-8 md:py-32">
+          <Reveal>
+            <h2 className="max-w-[20ch] font-display text-4xl font-bold tracking-tight md:text-5xl">
+              Playful on the outside. Serious where it counts.
+            </h2>
+            <p className="mt-4 max-w-[52ch] text-lg text-fg-2">
+              When valuable cards change hands, the interface gets quiet and factual. No stars, no guesswork.
+            </p>
+          </Reveal>
 
-          <div
-            className="glass absolute left-75 top-10 flex w-[290px] flex-col gap-4 rounded-card p-5"
-            style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(108,99,255,0.15)" }}
-          >
-            <div className="flex items-center justify-between">
-              <span className="gradient-text text-[22px] font-bold tracking-tight">
-                96% MATCH
-              </span>
-              <span
-                className="rounded-pill px-2 py-1 text-[11px] font-semibold"
-                style={{ color: "var(--color-cyan)", background: "var(--color-cyan-tint)" }}
-              >
-                NEW
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <TcgCard width={92} name="Charizard ex" code="223" tone="coral" alt="Charizard ex" />
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border-strong"
-                style={{ background: "var(--color-surface-2)" }}
-              >
-                <ArrowLeftRight size={16} strokeWidth={2} color="var(--color-text-2-body)" />
+          <div className="mt-14 grid gap-4 lg:grid-cols-2">
+            <Reveal>
+              <div className="flex h-full flex-col rounded-xl bg-page p-5 ring-1 ring-inset ring-line md:p-8">
+                <h3 className="font-display text-2xl font-semibold tracking-tight">Identity, shown plainly.</h3>
+                <p className="mt-2 max-w-[44ch] text-fg-2">
+                  Identity Verified confirms who someone is. It&apos;s never mixed up with a rating of how they trade.
+                </p>
+                <div className="mt-8 flex items-center gap-4 rounded-lg bg-page-2 p-4 ring-1 ring-inset ring-line-2">
+                  <Avatar seed={DEMO_COLLECTOR.id} verified size={48} />
+                  <div className="min-w-0">
+                    <div className="font-medium text-fg">{DEMO_COLLECTOR.name}</div>
+                    <div className="inline-flex items-center gap-1.5 text-sm font-medium text-seal">
+                      <SealCheck size={16} weight="fill" aria-hidden /> Identity Verified
+                    </div>
+                  </div>
+                </div>
               </div>
-              <TcgCard width={92} name="Umbreon VMAX" code="215" tone="indigo" alt="Umbreon VMAX" />
-            </div>
-            <div className="flex flex-col gap-1.5 text-[13px]">
-              <span className="flex items-center gap-1.5 font-medium" style={{ color: "var(--color-cyan)" }}>
-                <BadgeCheck size={14} strokeWidth={2} />
-                Identity Verified
-              </span>
-              <span className="flex items-center gap-1.5" style={{ color: "var(--color-muted)" }}>
-                <MapPin size={13} strokeWidth={2} />
-                4.8 km away
-              </span>
-            </div>
+            </Reveal>
+
+            <Reveal delay={0.08}>
+              <div className="relative h-full overflow-hidden rounded-xl bg-[linear-gradient(135deg,rgb(108_182_255/0.1),transparent_60%)] p-5 ring-1 ring-inset ring-seal/20 md:p-8">
+                <div className="flex items-start gap-5">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-display text-2xl font-semibold tracking-tight">You decide who reaches you.</h3>
+                    <ul className="mt-5 space-y-3 text-fg-2">
+                      <li className="flex items-start gap-3">
+                        <EnvelopeSimple size={20} weight="fill" className="mt-0.5 shrink-0 text-seal" aria-hidden />
+                        Contact details stay hidden until you reveal them on a match
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <UserFocus size={20} weight="fill" className="mt-0.5 shrink-0 text-seal" aria-hidden />
+                        Matches only form when both collectors have something the other wants
+                      </li>
+                    </ul>
+                  </div>
+                  <Pocket expression="concerned" size={84} className="hidden shrink-0 sm:block" />
+                </div>
+              </div>
+            </Reveal>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Loop strip */}
-      <div className="px-6 pb-16 sm:px-10 md:px-16">
-        <div
-          id="how-it-works"
-          className="mx-auto grid w-full max-w-[1280px] scroll-mt-8 grid-cols-1 rounded-card sm:grid-cols-2 lg:grid-cols-5"
-          style={{ background: "var(--color-bg-2)", border: "1px solid var(--color-border)" }}
-        >
-          {LOOP.map((step, i) => (
-            <div
-              key={step.n}
-              className="flex flex-col gap-2.5 p-6"
-              style={{ borderRight: i < LOOP.length - 1 ? "1px solid var(--color-border)" : "none" }}
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="font-mono text-xs font-semibold" style={{ color: "var(--color-indigo-light)" }}>
-                  {step.n}
-                </span>
-                <step.icon size={16} strokeWidth={2} color={step.color} />
-              </div>
-              <span className="text-[15px] font-semibold">{step.title}</span>
-              <span className="text-[13px] leading-relaxed" style={{ color: "var(--color-muted)" }}>
-                {step.desc}
-              </span>
-            </div>
-          ))}
+      {/* Closing */}
+      <section className="mx-auto max-w-6xl px-4 py-24 text-center md:px-8 md:py-32">
+        <Reveal>
+          <NetworkScene />
+          <h2 className="mx-auto mt-6 max-w-[22ch] font-display text-4xl font-bold tracking-tight md:text-5xl">
+            Don&apos;t search for trades. Let the network find them for you.
+          </h2>
+          <div className="mt-10 flex justify-center">
+            <ButtonLink href="/signup" size="lg">
+              Find matches
+            </ButtonLink>
+          </div>
+        </Reveal>
+      </section>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 md:flex-row md:items-center md:justify-between md:px-8">
+          <Logo />
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
+            <a href="#how" className="hover:text-fg">How it works</a>
+            <a href="#trust" className="hover:text-fg">Trust</a>
+            <Link href="/characters" className="hover:text-fg">Meet Pocket</Link>
+            <Link href="/login" className="hover:text-fg">Log in</Link>
+          </nav>
+          <p className="max-w-[40ch] text-xs text-muted">
+            Card images belong to their publishers. Trade Matcher is not affiliated with any TCG publisher.
+          </p>
         </div>
-      </div>
-    </main>
+      </footer>
+    </div>
   );
 }

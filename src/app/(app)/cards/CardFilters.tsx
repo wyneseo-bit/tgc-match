@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X } from "@phosphor-icons/react";
+import { cx, selectClass } from "@/components/ui";
 import {
   FINISH_OPTIONS,
   categoryLabel,
@@ -10,12 +11,6 @@ import {
   type FilterOptions,
   type SetInfo,
 } from "@/lib/card-filters";
-
-const CONTROL_STYLE = {
-  background: "var(--color-surface)",
-  border: "1px solid var(--color-border-strong)",
-  colorScheme: "dark",
-} as const;
 
 function FilterSelect({
   label,
@@ -33,11 +28,11 @@ function FilterSelect({
       aria-label={label}
       value={value ?? ""}
       onChange={(e) => onChange(e.target.value || undefined)}
-      className="h-10 max-w-[180px] rounded-btn px-3 text-[13px] outline-none focus:border-[#6C63FF80]"
-      style={{
-        ...CONTROL_STYLE,
-        color: value ? "var(--color-text)" : "var(--color-muted)",
-      }}
+      className={cx(
+        selectClass,
+        "max-w-[180px] px-4",
+        value ? "bg-pear/12 text-pear ring-pear/40" : "text-fg-2",
+      )}
     >
       <option value="">{label}</option>
       {options.map((o) => (
@@ -69,8 +64,10 @@ function SetPicker({
   return (
     <div className="relative">
       <div
-        className="flex h-10 w-[200px] items-center gap-1.5 rounded-btn px-3 focus-within:border-[#6C63FF80]"
-        style={CONTROL_STYLE}
+        className={cx(
+          "flex h-9 w-[200px] items-center gap-1.5 rounded-full px-4 ring-1 ring-inset transition focus-within:ring-pear/70",
+          value ? "bg-pear/12 ring-pear/40" : "bg-page-2 ring-line-2",
+        )}
       >
         <input
           type="text"
@@ -89,16 +86,16 @@ function SetPicker({
           onKeyDown={(e) => {
             if (e.key === "Escape") e.currentTarget.blur();
           }}
-          className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[var(--color-muted)]"
+          className={cx("min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted", value && !open ? "text-pear" : "text-fg")}
         />
         {value && (
           <button
             type="button"
             aria-label="Clear set filter"
             onClick={() => onChange(undefined)}
-            style={{ color: "var(--color-muted)" }}
+            className="text-muted hover:text-fg"
           >
-            <X size={14} strokeWidth={2} />
+            <X size={14} weight="bold" aria-hidden />
           </button>
         )}
       </div>
@@ -107,11 +104,10 @@ function SetPicker({
         <ul
           id="set-picker-list"
           role="listbox"
-          className="absolute left-0 top-11 z-20 max-h-64 w-[260px] overflow-y-auto rounded-btn py-1 text-[13px]"
-          style={{ ...CONTROL_STYLE, boxShadow: "var(--shadow-card)" }}
+          className="glass absolute left-0 top-11 z-20 max-h-64 w-[260px] overflow-y-auto rounded-md py-1 text-sm"
         >
           {matches.length === 0 && (
-            <li className="px-3 py-2" style={{ color: "var(--color-muted)" }}>
+            <li className="px-3 py-2 text-muted">
               No sets match
             </li>
           )}
@@ -127,11 +123,10 @@ function SetPicker({
                 onChange(s.id);
                 setOpen(false);
               }}
-              className="cursor-pointer px-3 py-2 hover:bg-[var(--color-surface-2)]"
-              style={{
-                color:
-                  s.id === value ? "var(--color-indigo-light)" : "var(--color-text)",
-              }}
+              className={cx(
+                "cursor-pointer px-3 py-2 hover:bg-white/5",
+                s.id === value ? "text-pear" : "text-fg",
+              )}
             >
               {s.name}
             </li>
@@ -196,8 +191,7 @@ export function CardFilters({
         <button
           type="button"
           onClick={() => onChange({})}
-          className="px-1 text-[13px] font-medium"
-          style={{ color: "var(--color-indigo-light)" }}
+          className="h-9 px-2 text-sm font-medium text-pear hover:underline"
         >
           Clear filters
         </button>

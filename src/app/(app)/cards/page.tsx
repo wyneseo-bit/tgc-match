@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Search } from "lucide-react";
-import { TcgCard } from "@/components/TcgCard";
+import { Books, Check, Heart, MagnifyingGlass, X } from "@phosphor-icons/react";
+import { PocketSlot } from "@/components/Card";
+import { Pocket } from "@/components/Pocket";
+import { buttonClass, cx, fieldClass } from "@/components/ui";
 import {
   type CardFilters as Filters,
   type FilterOptions,
@@ -219,132 +221,152 @@ export default function CardsPage() {
   const showEmpty = status === "idle" && mode === "search" && cards.length === 0;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-[30px] font-bold tracking-tight">Discover</h1>
-        <span className="text-sm" style={{ color: "var(--color-muted)" }}>
-          Search the Pokémon TCG catalog to build your collection and wants.
-        </span>
-      </div>
+    <div>
+      <header>
+        <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Discover</h1>
+        <p className="mt-2 text-muted">
+          Search the Pokémon TCG catalogue and drop cards into your binder or your wants.
+        </p>
+      </header>
 
-      <div className="flex flex-col gap-3">
-        <div
-          className="flex h-12 max-w-[560px] items-center gap-2.5 rounded-btn px-3.5"
-          style={{ background: "var(--color-surface)", border: "1px solid var(--color-border-strong)" }}
-        >
-          <Search size={17} strokeWidth={2} color="var(--color-muted)" />
+      <div className="mt-8">
+        <label htmlFor="card-search" className="mb-2 block text-sm font-medium text-fg-2">
+          Search cards
+        </label>
+        <div className="relative max-w-[640px]">
+          <MagnifyingGlass
+            size={20}
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted"
+            aria-hidden
+          />
           <input
-            type="text"
+            id="card-search"
+            type="search"
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
             placeholder='Try "pikachu 30" or "salamence ex delta"'
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--color-muted)]"
+            autoComplete="off"
+            className={fieldClass(false, "h-13 pl-12 pr-12 text-base")}
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => handleQueryChange("")}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full text-muted hover:bg-white/5 hover:text-fg"
+            >
+              <X size={16} aria-hidden />
+            </button>
+          )}
         </div>
 
         {options && (
-          <CardFilters
-            options={options}
-            filters={filters}
-            onChange={handleFiltersChange}
-          />
+          <div className="mt-4">
+            <CardFilters options={options} filters={filters} onChange={handleFiltersChange} />
+          </div>
         )}
       </div>
 
       {mode === "search" && interpretation && (
-        <SearchHints
-          query={query}
-          interpretation={interpretation}
-          ignore={ignore}
-          onToggle={toggleIgnore}
-          onReset={() => updateIgnore([])}
-        />
+        <div className="mt-5">
+          <SearchHints
+            query={query}
+            interpretation={interpretation}
+            ignore={ignore}
+            onToggle={toggleIgnore}
+            onReset={() => updateIgnore([])}
+          />
+        </div>
       )}
 
-      {mode === "popular" && status !== "error" && (
-        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
-          Popular cards
-        </h2>
-      )}
+      <section aria-label="Cards" className="mt-8">
+        <div aria-live="polite">
+          {mode === "popular" && status !== "error" && (
+            <h2 className="font-display text-xl font-semibold tracking-tight">Popular cards</h2>
+          )}
+          {status === "loading" && !loadingMore && (
+            <p className="mt-2 flex items-center gap-3 text-sm text-muted">
+              <Pocket expression="searching" size={36} className="shrink-0" />
+              {mode === "popular" ? "Loading…" : "Searching…"}
+            </p>
+          )}
+          {status === "error" && <p className="text-sm text-danger">{error}</p>}
+          {showEmpty && (
+            <p className="rounded-lg bg-page p-6 text-center text-muted ring-1 ring-inset ring-line">
+              {query.trim()
+                ? `No cards found for "${query.trim()}".`
+                : "No cards match these filters."}{" "}
+              {hasActiveFilters(filters)
+                ? "Try removing a filter."
+                : "Try a different name or spelling."}
+            </p>
+          )}
+        </div>
 
-      {status === "loading" && !loadingMore && (
-        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-          {mode === "popular" ? "Loading…" : "Searching…"}
-        </p>
-      )}
-      {status === "error" && (
-        <p className="text-sm" style={{ color: "var(--color-danger)" }}>{error}</p>
-      )}
+        <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {cards.map((card) => {
+            const inCollection = added.collection.has(card.id);
+            const inWants = added.wants.has(card.id);
+            const adding = (kind: AddKind) => pending?.id === card.id && pending.kind === kind;
+            return (
+              <div key={card.id} className="min-w-0">
+                <PocketSlot card={card} tab={inCollection ? "Mine" : undefined} />
+                <div className="mt-3 px-0.5">
+                  <div className="truncate text-sm font-medium text-fg">{card.name}</div>
+                  <div className="truncate text-xs text-muted">
+                    {card.set_name}, #{card.card_number}
+                  </div>
+                </div>
+                <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    disabled={adding("collection") || inCollection}
+                    onClick={() => handleAdd(card.id, "collection")}
+                    aria-label={`Add ${card.name} to collection`}
+                    className={cx(
+                      "inline-flex h-9 items-center justify-center gap-1.5 rounded-full text-xs font-medium transition",
+                      inCollection
+                        ? "bg-pear/15 text-pear"
+                        : "bg-pear text-pear-ink hover:bg-pear-2 disabled:opacity-45",
+                    )}
+                  >
+                    {inCollection ? <Check size={14} weight="bold" aria-hidden /> : <Books size={14} weight="bold" aria-hidden />}
+                    {inCollection ? "In binder" : adding("collection") ? "Adding…" : "Have"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={adding("wants") || inWants}
+                    onClick={() => handleAdd(card.id, "wants")}
+                    aria-label={`Add ${card.name} to wants`}
+                    className={cx(
+                      "inline-flex h-9 items-center justify-center gap-1.5 rounded-full text-xs font-medium transition",
+                      inWants
+                        ? "bg-pear/15 text-pear"
+                        : "bg-page-2 text-fg ring-1 ring-inset ring-line-2 hover:bg-page-3 disabled:opacity-45",
+                    )}
+                  >
+                    <Heart size={14} weight={inWants ? "fill" : "regular"} aria-hidden />
+                    {inWants ? "Wanted" : adding("wants") ? "Adding…" : "Want"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-      {showEmpty && (
-        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-          {query.trim()
-            ? `No cards found for "${query.trim()}".`
-            : "No cards match these filters."}{" "}
-          {hasActiveFilters(filters)
-            ? "Try removing a filter."
-            : "Try a different name or spelling."}
-        </p>
-      )}
-
-      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {cards.map((card) => (
-          <div key={card.id} className="flex flex-col items-center gap-2 text-center">
-            <TcgCard width={140} imageUrl={card.image_url} alt={card.name} />
-            <div>
-              <p className="text-sm font-semibold">{card.name}</p>
-              <p className="text-xs" style={{ color: "var(--color-muted)" }}>
-                {card.set_name} · #{card.card_number}
-              </p>
-            </div>
-            <div className="flex gap-1.5">
-              <button
-                type="button"
-                disabled={
-                  (pending?.id === card.id && pending.kind === "collection") ||
-                  added.collection.has(card.id)
-                }
-                onClick={() => handleAdd(card.id, "collection")}
-                className="gradient-primary rounded-btn px-2.5 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-              >
-                {added.collection.has(card.id)
-                  ? "In collection"
-                  : pending?.id === card.id && pending.kind === "collection"
-                    ? "Adding…"
-                    : "+ Collection"}
-              </button>
-              <button
-                type="button"
-                disabled={
-                  (pending?.id === card.id && pending.kind === "wants") ||
-                  added.wants.has(card.id)
-                }
-                onClick={() => handleAdd(card.id, "wants")}
-                className="rounded-btn border border-border-strong px-2.5 py-1.5 text-xs font-medium disabled:opacity-50"
-                style={{ background: "var(--color-surface-2)" }}
-              >
-                {added.wants.has(card.id)
-                  ? "In wants"
-                  : pending?.id === card.id && pending.kind === "wants"
-                    ? "Adding…"
-                    : "+ Wants"}
-              </button>
-            </div>
+        {mode === "search" && hasMore && status !== "error" && (
+          <div className="mt-10 flex justify-center">
+            <button
+              type="button"
+              disabled={loadingMore}
+              onClick={() => runSearch(query, filters, ignore, page + 1)}
+              className={buttonClass("secondary")}
+            >
+              {loadingMore ? "Loading…" : "Load more"}
+            </button>
           </div>
-        ))}
-      </div>
-
-      {mode === "search" && hasMore && status !== "error" && (
-        <button
-          type="button"
-          disabled={loadingMore}
-          onClick={() => runSearch(query, filters, ignore, page + 1)}
-          className="self-center rounded-btn border border-border-strong px-5 py-2.5 text-sm font-medium disabled:opacity-50"
-          style={{ background: "var(--color-surface-2)" }}
-        >
-          {loadingMore ? "Loading…" : "Load more"}
-        </button>
-      )}
+        )}
+      </section>
     </div>
   );
 }
