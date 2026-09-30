@@ -1,3 +1,5 @@
+import { cx } from "./ui";
+
 function scorePassword(password: string) {
   let score = 0;
   if (password.length >= 8) score++;
@@ -11,20 +13,17 @@ const LABELS = ["Too short", "Weak password", "Fair password", "Good password", 
 
 export function PasswordStrength({ password }: { password: string }) {
   const score = password.length === 0 ? 0 : Math.max(1, scorePassword(password));
+  const tone = score <= 1 ? "bg-danger" : score === 2 ? "bg-warn" : "bg-pear";
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="grid grid-cols-4 gap-1">
+      <div className="grid grid-cols-4 gap-1" aria-hidden>
         {[1, 2, 3, 4].map((i) => (
-          <span
-            key={i}
-            className="h-1 rounded-pill"
-            style={{ background: i <= score ? "var(--color-cyan)" : "var(--color-surface-2)" }}
-          />
+          <span key={i} className={cx("h-1 rounded-full transition-colors", i <= score ? tone : "bg-page-2")} />
         ))}
       </div>
       {password.length > 0 && (
-        <span className="text-xs" style={{ color: "var(--color-cyan)" }}>
+        <span className={cx("text-xs", score <= 1 ? "text-danger" : score === 2 ? "text-warn" : "text-pear")} aria-live="polite">
           {LABELS[score]}
         </span>
       )}

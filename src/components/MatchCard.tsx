@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ArrowLeftRight, BadgeCheck, ChevronRight } from "lucide-react";
-import { TcgCard } from "./TcgCard";
+import { ArrowsLeftRight, MapPin, SealCheck } from "@phosphor-icons/react/dist/ssr";
+import { TcgCard } from "./Card";
+import { Avatar } from "./Collector";
+import { buttonClass, cx, Score } from "./ui";
 
 export type MatchCardSide = {
   name: string;
@@ -9,138 +11,123 @@ export type MatchCardSide = {
   imageUrl: string | null;
 };
 
+/** Up to three cards fanned out; the rest are counted in the caption. */
+function Fan({ cards, align }: { cards: MatchCardSide[]; align: "left" | "right" }) {
+  const shown = cards.slice(0, 3);
+  return (
+    <div className={cx("relative flex", align === "right" ? "justify-end" : "justify-start")}>
+      {shown.map((c, i) => (
+        <div
+          key={`${c.name}-${i}`}
+          className={cx("w-[78%] max-w-[150px] shrink-0", i > 0 && "-ml-[52%] mt-3")}
+          style={{ zIndex: shown.length - i }}
+        >
+          <TcgCard card={{ name: c.name, set_name: c.setName, card_number: c.cardNumber, image_url: c.imageUrl }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function names(cards: MatchCardSide[]) {
+  if (cards.length === 0) return "—";
+  if (cards.length <= 2) return cards.map((c) => c.name).join(" + ");
+  return `${cards[0].name} + ${cards.length - 1} more`;
+}
+
+/** A potential trade. Glass, because it floats over the discovery surface. */
 export function MatchCard({
   id,
   score,
   isNew,
   youGive,
   youGet,
+  counterpartId,
   counterpartName,
   counterpartVerified,
   counterpartLocation,
   featured,
   action,
+  href,
 }: {
   id: string;
   score: number;
   isNew: boolean;
   youGive: MatchCardSide[];
   youGet: MatchCardSide[];
+  counterpartId: string;
   counterpartName: string;
   counterpartVerified: boolean;
   counterpartLocation: string | null;
   featured: boolean;
-  action: React.ReactNode;
+  action?: React.ReactNode;
+  /** Where "View match" goes. Defaults to the match detail page. */
+  href?: string;
 }) {
-  const initial = counterpartName.charAt(0).toUpperCase();
-  const give = youGive[0];
-  const get = youGet[0];
-
   return (
-    <div
-      className="glass flex flex-col gap-4 rounded-card p-5"
-      style={{
-        border: featured
-          ? "1px solid rgba(108,99,255,0.45)"
-          : "1px solid rgba(255,255,255,0.08)",
-        boxShadow: featured ? "var(--shadow-featured)" : "none",
-      }}
+    <article
+      className={cx(
+        "glass group relative flex flex-col rounded-xl p-5 transition duration-200 ease-soft hover:-translate-y-0.5 hover:border-white/15",
+        featured && "md:p-7",
+      )}
     >
       <div className="flex items-center justify-between">
-        <span className="gradient-text text-lg font-bold tracking-tight">
-          {score}% MATCH
+        <Score value={score} size={featured ? "lg" : "md"} />
+        {isNew && (
+          <span className="rounded-full bg-pear/12 px-2.5 py-1 text-xs font-semibold text-pear ring-1 ring-inset ring-pear/25">New</span>
+        )}
+      </div>
+
+      <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <Fan cards={youGive} align="left" />
+        <span className="grid size-10 place-items-center rounded-full bg-night text-pear ring-1 ring-inset ring-pear/30">
+          <ArrowsLeftRight size={18} weight="bold" aria-label="trade for" />
         </span>
-        <div className="flex items-center gap-1.5">
-          {isNew && (
-            <span
-              className="rounded-pill px-2 py-1 text-[10px] font-semibold tracking-wide"
-              style={{ color: "var(--color-cyan)", background: "var(--color-cyan-tint)" }}
-            >
-              NEW
-            </span>
-          )}
-          <span className="text-[11px]" style={{ color: "var(--color-muted)" }}>
-            Pokémon
-          </span>
-          <Link
-            href={`/matches/${id}`}
-            className="flex items-center rounded-full"
-            style={{ color: "var(--color-muted)" }}
-            aria-label="View match details"
-          >
-            <ChevronRight size={16} strokeWidth={2} />
-          </Link>
+        <Fan cards={youGet} align="right" />
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <div className="text-xs text-muted">You give</div>
+          <div className="mt-0.5 line-clamp-2 font-medium text-fg">{names(youGive)}</div>
+        </div>
+        <div className="text-right">
+          <div className="text-xs text-muted">You receive</div>
+          <div className="mt-0.5 line-clamp-2 font-medium text-fg">{names(youGet)}</div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-1.5">
-        {give && (
-          <TcgCard width={100} imageUrl={give.imageUrl} alt={give.name} name={give.name} />
-        )}
-        <div
-          className="flex h-8.5 w-8.5 items-center justify-center rounded-full border border-border-strong"
-          style={{ background: "var(--color-surface-2)" }}
-        >
-          <ArrowLeftRight size={15} strokeWidth={2} color="var(--color-text-2-body)" />
-        </div>
-        {get && (
-          <TcgCard width={100} imageUrl={get.imageUrl} alt={get.name} name={get.name} />
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-[11px] uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
-            You give
-          </span>
-          <span className="flex min-w-0 items-baseline gap-1">
-            <span className="min-w-0 truncate text-[13px] font-semibold">{give?.name ?? "—"}</span>
-            {youGive.length > 1 && (
-              <span className="flex-none text-[11px] font-normal" style={{ color: "var(--color-muted)" }}>
-                +{youGive.length - 1} more
+      <div className="mt-5 flex items-center gap-3 border-t border-line pt-4">
+        <Avatar seed={counterpartId} verified={counterpartVerified} size={40} />
+        <div className="min-w-0 flex-1 text-sm">
+          <div className="truncate font-medium text-fg">{counterpartName}</div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-muted">
+            {counterpartVerified ? (
+              <span className="inline-flex items-center gap-1 text-seal">
+                <SealCheck size={14} weight="fill" aria-hidden /> Identity Verified
+              </span>
+            ) : (
+              <span>Not verified</span>
+            )}
+            {counterpartLocation && (
+              <span className="inline-flex items-center gap-1">
+                <MapPin size={13} aria-hidden /> {counterpartLocation}
               </span>
             )}
-          </span>
-        </div>
-        <div className="flex min-w-0 flex-col items-end gap-0.5 text-right">
-          <span className="text-[11px] uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
-            You get
-          </span>
-          <span className="flex min-w-0 items-baseline justify-end gap-1">
-            {youGet.length > 1 && (
-              <span className="flex-none text-[11px] font-normal" style={{ color: "var(--color-muted)" }}>
-                +{youGet.length - 1} more
-              </span>
-            )}
-            <span className="min-w-0 truncate text-[13px] font-semibold">{get?.name ?? "—"}</span>
-          </span>
+          </div>
         </div>
       </div>
 
-      <div className="h-px bg-border" />
-
-      <div className="flex items-center gap-2.5">
-        <div
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-semibold text-white"
-          style={{ background: "linear-gradient(135deg,#6C63FF,#42D9E8)" }}
+      <div className={cx("mt-5 grid gap-3", !!action && "grid-cols-2")}>
+        <Link
+          href={href ?? `/matches/${id}`}
+          className={buttonClass(featured ? "primary" : "secondary", "md", "w-full")}
+          aria-label={`View match with ${counterpartName}`}
         >
-          {initial}
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex items-center gap-1.5 text-[13px] font-semibold">
-            {counterpartName}
-            {counterpartVerified && (
-              <BadgeCheck size={13} strokeWidth={2} color="var(--color-cyan)" />
-            )}
-          </span>
-          {counterpartLocation && (
-            <span className="text-xs" style={{ color: "var(--color-muted)" }}>
-              {counterpartLocation}
-            </span>
-          )}
-        </div>
+          View match
+        </Link>
         {action}
       </div>
-    </div>
+    </article>
   );
 }

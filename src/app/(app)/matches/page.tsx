@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { MatchedCard } from "@/lib/matching";
-import { Mascot } from "@/components/Mascot";
+import { EmptyState } from "@/components/EmptyState";
+import { Pocket } from "@/components/Pocket";
 import { MatchCard, type MatchCardSide } from "@/components/MatchCard";
 import { ContactReveal } from "./ContactReveal";
 
@@ -20,6 +21,8 @@ type CardInfo = {
   card_number: string;
   image_url: string | null;
 };
+
+export const metadata = { title: "Matches" };
 
 const NEW_WINDOW_MS = 24 * 60 * 60 * 1000;
 
@@ -88,80 +91,79 @@ export default async function MatchesPage() {
     (m) => now - new Date(m.created_at).getTime() < NEW_WINDOW_MS,
   ).length;
 
+  const tiles = (matches ?? []).map((m, i) => {
+    const isA = m.user_a_id === user.id;
+    const counterpartId = isA ? m.user_b_id : m.user_a_id;
+    const counterpart = counterpartById.get(counterpartId);
+
+    const iGive = m.matched_cards
+      .filter((c) => (isA ? c.direction === "a_gives" : c.direction === "b_gives"))
+      .map(toSide);
+    const iGet = m.matched_cards
+      .filter((c) => (isA ? c.direction === "b_gives" : c.direction === "a_gives"))
+      .map(toSide);
+
+    const isNew = now - new Date(m.created_at).getTime() < NEW_WINDOW_MS;
+
+    return (
+      <MatchCard
+        key={m.id}
+        id={m.id}
+        score={m.match_score}
+        isNew={isNew}
+        youGive={iGive}
+        youGet={iGet}
+        counterpartId={counterpartId}
+        counterpartName={counterpart?.display_name ?? "Unknown trader"}
+        counterpartVerified={counterpart?.verified ?? false}
+        counterpartLocation={counterpart?.location ?? null}
+        featured={i === 0}
+        action={<ContactReveal matchId={m.id} />}
+      />
+    );
+  });
+
+  if (error) {
+    return <p className="text-sm text-danger">{error.message}</p>;
+  }
+
+  if (tiles.length === 0) {
+    return (
+      <EmptyState
+        expression="searching"
+        title="Still searching..."
+        body="Nobody on the network fits yet. Add more cards you'd trade and more cards you want, and we'll find reciprocal trades automatically."
+        actions={[
+          { href: "/cards", label: "Add cards", variant: "primary" },
+          { href: "/wants", label: "Review wants", variant: "secondary" },
+        ]}
+      />
+    );
+  }
+
+  const [featured, ...rest] = tiles;
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-end justify-between gap-6">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-[30px] font-bold tracking-tight">Your matches</h1>
-          <span className="text-sm" style={{ color: "var(--color-muted)" }}>
-            Collectors who have what you want — and want what you have.
-          </span>
+    <div>
+      <header className="flex items-end gap-4">
+        <Pocket expression="excited" prop="card" size={76} className="-mb-1 shrink-0" />
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
+            We found {tiles.length} potential trade{tiles.length === 1 ? "" : "s"}.
+          </h1>
+          <p className="mt-2 text-muted">
+            {newCount > 0
+              ? `${newCount} new since yesterday. Collectors who have what you want, and want what you have.`
+              : "Collectors who have what you want, and want what you have."}
+          </p>
         </div>
+      </header>
 
-        {matches && matches.length > 0 && (
-          <div className="glass flex items-center gap-3.5 rounded-card py-2.5 pl-3 pr-5">
-            <Mascot mood="excited" size={46} color="indigo" />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-semibold">
-                We found {matches.length} potential trade{matches.length === 1 ? "" : "s"}.
-              </span>
-              <span className="text-xs" style={{ color: "var(--color-muted)" }}>
-                {newCount > 0
-                  ? `${newCount} new since yesterday`
-                  : "Add more cards to find more"}
-              </span>
-            </div>
-          </div>
-        )}
+      <div className="mt-10 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
+        {featured}
+        <div className="grid content-start gap-5 sm:grid-cols-2 lg:grid-cols-1">{rest.slice(0, 1)}</div>
       </div>
-
-      {error && <p className="text-sm" style={{ color: "var(--color-danger)" }}>{error.message}</p>}
-
-      {matches && matches.length === 0 && (
-        <div className="glass flex flex-col items-center gap-4 rounded-card px-8 py-16 text-center">
-          <Mascot mood="sleeping" size={80} color="violet" />
-          <div className="flex flex-col gap-1">
-            <p className="font-semibold">No matches yet</p>
-            <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-              Add cards to your collection and wants and we&apos;ll find reciprocal
-              trades automatically.
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {matches?.map((m, i) => {
-          const isA = m.user_a_id === user.id;
-          const counterpartId = isA ? m.user_b_id : m.user_a_id;
-          const counterpart = counterpartById.get(counterpartId);
-
-          const iGive = m.matched_cards
-            .filter((c) => (isA ? c.direction === "a_gives" : c.direction === "b_gives"))
-            .map(toSide);
-          const iGet = m.matched_cards
-            .filter((c) => (isA ? c.direction === "b_gives" : c.direction === "a_gives"))
-            .map(toSide);
-
-          const isNew = now - new Date(m.created_at).getTime() < NEW_WINDOW_MS;
-
-          return (
-            <MatchCard
-              key={m.id}
-              id={m.id}
-              score={m.match_score}
-              isNew={isNew}
-              youGive={iGive}
-              youGet={iGet}
-              counterpartName={counterpart?.display_name ?? "Unknown trader"}
-              counterpartVerified={counterpart?.verified ?? false}
-              counterpartLocation={counterpart?.location ?? null}
-              featured={i === 0}
-              action={<ContactReveal matchId={m.id} featured={i === 0} />}
-            />
-          );
-        })}
-      </div>
+      {rest.length > 1 && <div className="mt-5 grid gap-5 sm:grid-cols-2">{rest.slice(1)}</div>}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, Eye, EyeOff, Check } from "lucide-react";
+import { Check, Eye, EyeSlash, LockSimple } from "@phosphor-icons/react";
+import { fieldShell } from "./AuthField";
 
 export function PasswordInput({
   name,
@@ -12,6 +13,7 @@ export function PasswordInput({
   value,
   onChange,
   showCheck,
+  label,
 }: {
   name: string;
   placeholder: string;
@@ -21,19 +23,13 @@ export function PasswordInput({
   value?: string;
   onChange?: (value: string) => void;
   showCheck?: boolean;
+  label?: string;
 }) {
   const [visible, setVisible] = useState(false);
 
   return (
-    <div
-      className="flex h-12 items-center gap-2.5 rounded-btn px-3.5 focus-within:border-[#6C63FF80] focus-within:shadow-[0_0_0_4px_rgba(108,99,255,0.1)]"
-      style={{
-        background: "var(--color-surface)",
-        border: error ? "1px solid rgba(255,107,107,0.6)" : "1px solid var(--color-border-strong)",
-        boxShadow: error ? "0 0 0 4px rgba(255,107,107,0.08)" : undefined,
-      }}
-    >
-      <Lock size={16} strokeWidth={2} color="var(--color-muted)" />
+    <div className={fieldShell(error)}>
+      <LockSimple size={18} className="shrink-0 text-muted" aria-hidden />
       <input
         name={name}
         type={visible ? "text" : "password"}
@@ -42,20 +38,21 @@ export function PasswordInput({
         minLength={minLength}
         value={value}
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--color-muted)]"
+        aria-label={label}
+        aria-invalid={error || undefined}
+        className="min-w-0 flex-1 bg-transparent text-[15px] text-fg outline-none placeholder:text-muted"
       />
       {showCheck ? (
-        <Check size={16} strokeWidth={2} color="var(--color-cyan)" />
+        <Check size={18} weight="bold" className="shrink-0 text-pear" aria-label="Passwords match" />
       ) : (
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          className="flex-none"
-          style={{ color: "var(--color-muted)" }}
+          className="shrink-0 text-muted hover:text-fg"
           aria-label={visible ? "Hide password" : "Show password"}
           tabIndex={-1}
         >
-          {visible ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={2} />}
+          {visible ? <EyeSlash size={18} aria-hidden /> : <Eye size={18} aria-hidden />}
         </button>
       )}
     </div>

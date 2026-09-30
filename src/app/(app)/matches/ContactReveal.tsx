@@ -1,9 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { EnvelopeSimple } from "@phosphor-icons/react";
+import { buttonClass } from "@/components/ui";
 import { revealContact } from "./actions";
 
-export function ContactReveal({ matchId, featured }: { matchId: string; featured: boolean }) {
+export function ContactReveal({
+  matchId,
+  size = "md",
+  variant = "secondary",
+  className,
+}: {
+  matchId: string;
+  size?: "md" | "lg";
+  variant?: "primary" | "secondary";
+  className?: string;
+}) {
   const [email, setEmail] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
@@ -26,35 +38,26 @@ export function ContactReveal({ matchId, featured }: { matchId: string; featured
     return (
       <a
         href={`mailto:${email}`}
-        className="max-w-32 truncate text-xs underline"
-        style={{ color: "var(--color-cyan)" }}
+        className={buttonClass("secondary", size, `min-w-0 ${className ?? ""}`)}
         title={email}
       >
-        {email}
+        <EnvelopeSimple size={16} className="shrink-0 text-seal" aria-hidden />
+        <span className="truncate">{email}</span>
       </a>
     );
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className={`flex flex-col gap-1 ${className ?? ""}`}>
       <button
         type="button"
         onClick={handleReveal}
         disabled={status === "loading"}
-        className={
-          featured
-            ? "gradient-primary flex h-9 items-center rounded-btn px-3.5 text-[13px] font-medium text-white disabled:opacity-50"
-            : "flex h-9 items-center rounded-btn border border-border-strong px-3.5 text-[13px] font-medium disabled:opacity-50"
-        }
-        style={!featured ? { background: "var(--color-surface-2)" } : undefined}
+        className={buttonClass(variant, size, "w-full")}
       >
         {status === "loading" ? "Loading…" : "Reveal contact"}
       </button>
-      {status === "error" && (
-        <p className="text-[11px]" style={{ color: "var(--color-danger)" }}>
-          {error}
-        </p>
-      )}
+      {status === "error" && <p className="text-center text-xs text-danger">{error}</p>}
     </div>
   );
 }

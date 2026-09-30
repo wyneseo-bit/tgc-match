@@ -1,4 +1,5 @@
-import { Check, X } from "lucide-react";
+import { Check, X } from "@phosphor-icons/react/dist/ssr";
+import { cx } from "./ui";
 
 const RULES = [
   { label: "At least 10 characters", test: (p: string) => p.length >= 10 },
@@ -8,33 +9,25 @@ const RULES = [
 
 export function PasswordRules({ password }: { password: string }) {
   return (
-    <div
-      className="flex flex-col gap-2.5 rounded-btn p-4"
-      style={{ background: "var(--color-bg-2)", border: "1px solid var(--color-border)" }}
-    >
+    <ul className="flex flex-col gap-2.5 rounded-md bg-page p-4 ring-1 ring-inset ring-line" aria-label="Password rules">
       {RULES.map((rule) => {
         const met = rule.test(password);
         return (
-          <span
-            key={rule.label}
-            className="flex items-center gap-2.5 text-sm"
-            style={{ color: met ? "var(--color-text-2)" : "var(--color-muted)" }}
-          >
+          <li key={rule.label} className={cx("flex items-center gap-2.5 text-sm", met ? "text-fg" : "text-muted")}>
             <span
-              className="flex h-4.5 w-4.5 flex-none items-center justify-center rounded-full"
-              style={{ background: met ? "var(--color-cyan-tint)" : "var(--color-surface-2)" }}
-            >
-              {met ? (
-                <Check size={11} strokeWidth={3} color="var(--color-cyan)" />
-              ) : (
-                <X size={11} strokeWidth={3} color="var(--color-muted)" />
+              className={cx(
+                "grid size-5 shrink-0 place-items-center rounded-full",
+                met ? "bg-pear/15 text-pear" : "bg-page-2 text-muted",
               )}
+            >
+              {met ? <Check size={11} weight="bold" aria-hidden /> : <X size={11} weight="bold" aria-hidden />}
             </span>
             {rule.label}
-          </span>
+            <span className="sr-only">{met ? "(met)" : "(not met)"}</span>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }
 
