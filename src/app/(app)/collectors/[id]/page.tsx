@@ -4,7 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { EmptySlot, PocketSlot } from "@/components/Card";
 import { sleeveFor } from "@/components/Collector";
 import { Pocket } from "@/components/Pocket";
-import { ButtonLink, IdentityBadge } from "@/components/ui";
+import { MessageButton } from "@/components/MessageButton";
+import { TradingRecordSection } from "@/components/TrustPanel";
+import { ButtonLink, IdentityBadge, TrustChip } from "@/components/ui";
+import { getTradingRecord } from "@/lib/trust";
 
 export const metadata = { title: "Collector" };
 
@@ -34,7 +37,7 @@ export default async function CollectorPage({ params }: { params: Promise<{ id: 
   if (!user) return null;
   if (id === user.id) redirect("/profile");
 
-  const [{ data: collector }, { data: haves }, { data: wants }, { data: myCollection }, { data: myWants }, { data: match }] =
+  const [{ data: collector }, { data: haves }, { data: wants }, { data: myCollection }, { data: myWants }, { data: match }, record] =
     await Promise.all([
       supabase.from("users").select("id, display_name, location, verified, created_at").eq("id", id).maybeSingle(),
       // RLS only exposes other collectors' available / for-sale cards.
@@ -58,6 +61,7 @@ export default async function CollectorPage({ params }: { params: Promise<{ id: 
         .select("id, match_score")
         .or(`and(user_a_id.eq.${user.id},user_b_id.eq.${id}),and(user_a_id.eq.${id},user_b_id.eq.${user.id})`)
         .maybeSingle(),
+      getTradingRecord(id),
     ]);
 
   if (!collector) notFound();
@@ -85,8 +89,9 @@ export default async function CollectorPage({ params }: { params: Promise<{ id: 
             </div>
             <div className="min-w-0">
               <h1 className="truncate font-display text-3xl font-bold tracking-tight md:text-4xl">{name}</h1>
-              <div className="mt-3">
-                <IdentityBadge verified={collector.verified} />
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <IdentityBadge verified={collector.verified} className="mr-1" />
+                {record.trustedTrader && <TrustChip kind="trusted" />}
               </div>
             </div>
           </div>
@@ -112,8 +117,13 @@ export default async function CollectorPage({ params }: { params: Promise<{ id: 
                 : "Add cards to your wants to find trades with them."}
             </span>
           )}
+          {match && <MessageButton userId={collector.id} name={name} className="sm:w-auto" />}
         </div>
       </header>
+
+      <div className="mt-6">
+        <TradingRecordSection record={record} whose={`${name}'s`} />
+      </div>
 
       <section aria-label={`${name}'s cards for trade`} className="mt-10">
         <div className="flex flex-wrap items-baseline justify-between gap-2">

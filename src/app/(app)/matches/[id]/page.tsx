@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarBlank, Check, MapPin } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, ArrowsLeftRight, Check } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import type { MatchedCard } from "@/lib/matching";
-import { CONDITION_OPTIONS, satisfiesCondition } from "@/lib/card-condition";
+import { conditionLabel, satisfiesCondition } from "@/lib/card-condition";
+import { OPEN_STATUSES } from "@/lib/trades";
+import { getTradingRecord } from "@/lib/trust";
 import { TcgCard } from "@/components/Card";
-import { Avatar } from "@/components/Collector";
 import { MatchStage, type StageCard } from "@/components/MatchStage";
-import { IdentityBadge, Panel } from "@/components/ui";
+import { MessageButton } from "@/components/MessageButton";
+import { TrustPanel } from "@/components/TrustPanel";
+import { ButtonLink, Panel } from "@/components/ui";
 import { ContactReveal } from "../ContactReveal";
 
 export const metadata = { title: "Match" };
@@ -38,10 +41,6 @@ function timeAgo(iso: string, now: number) {
   if (diffHr < 24) return `${diffHr} hr ago`;
   const diffDay = Math.floor(diffHr / 24);
   return `${diffDay} day${diffDay === 1 ? "" : "s"} ago`;
-}
-
-function conditionLabel(value: string | null) {
-  return CONDITION_OPTIONS.find((o) => o.value === value)?.label ?? null;
 }
 
 function meetsWant(c: MatchedCard) {
@@ -75,7 +74,7 @@ export default async function MatchDetailPage({
 
   const cardIds = Array.from(new Set(match.matched_cards.map((c) => c.card_id)));
 
-  const [{ data: counterpart }, { data: cards }] = await Promise.all([
+  const [{ data: counterpart }, { data: cards }, record, { data: openTrade }] = await Promise.all([
     supabase
       .from("users")
       .select("id, display_name, location, verified, created_at")
@@ -87,6 +86,15 @@ export default async function MatchDetailPage({
           .select("id, name, set_name, card_number, image_url, language")
           .in("id", cardIds)
       : Promise.resolve({ data: [] }),
+    getTradingRecord(counterpartId),
+    // One open trade per pair of collectors (RLS scopes this to the caller).
+    supabase
+      .from("trades")
+      .select("id")
+      .in("status", OPEN_STATUSES)
+      .or(`proposer_id.eq.${counterpartId},recipient_id.eq.${counterpartId}`)
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const cardById = new Map((cards ?? []).map((c) => [c.id, c as CardInfo]));
@@ -117,10 +125,6 @@ export default async function MatchDetailPage({
     `${meeting} of ${match.matched_cards.length} cards meet the condition asked for`,
     counterpart?.verified ? `${name}'s identity is verified` : `Discovered ${timeAgo(match.created_at, now)}`,
   ];
-
-  const memberSince = counterpart?.created_at
-    ? new Date(counterpart.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
-    : null;
 
   const rows = [
     ...iGive.map((c) => ({ c, side: "You give" })),
@@ -205,38 +209,18 @@ export default async function MatchDetailPage({
         </div>
 
         <aside className="space-y-4">
-          <section className="rounded-lg bg-page ring-1 ring-inset ring-line" aria-label={`About ${name}`}>
-            <div className="p-5">
-              <div className="flex items-center gap-3">
-                <Avatar seed={counterpartId} verified={counterpart?.verified ?? false} size={48} />
-                <div className="min-w-0">
-                  <Link href={`/collectors/${counterpartId}`} className="block truncate font-medium text-fg hover:underline">
-                    {name}
-                  </Link>
-                  {counterpart?.location && (
-                    <div className="flex items-center gap-1 text-sm text-muted">
-                      <MapPin size={14} aria-hidden /> {counterpart.location}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="mt-4">
-                <IdentityBadge verified={counterpart?.verified ?? false} />
-              </div>
-              {counterpart?.verified && (
-                <p className="mt-3 text-[13px] leading-relaxed text-muted">
-                  {name}&apos;s identity was checked by our verification provider. It confirms who they are, not how they trade.
-                </p>
-              )}
-            </div>
-            {memberSince && (
-              <div className="flex items-center gap-2 border-t border-line px-5 py-3.5 text-sm text-fg-2">
-                <CalendarBlank size={15} className="text-muted" aria-hidden /> Member since {memberSince}
-              </div>
-            )}
-          </section>
-          <ContactReveal matchId={match.id} size="lg" variant="primary" className="w-full" />
-          <p className="text-center text-xs text-muted">Reveal {name}&apos;s email to arrange the trade.</p>
+          {counterpart && <TrustPanel collector={counterpart} record={record} />}
+          {openTrade ? (
+            <ButtonLink href={`/trades/${openTrade.id}`} size="lg" className="w-full">
+              <ArrowsLeftRight size={18} weight="bold" aria-hidden /> View your trade
+            </ButtonLink>
+          ) : (
+            <ButtonLink href={`/trades/new?match=${match.id}`} size="lg" className="w-full">
+              <ArrowsLeftRight size={18} weight="bold" aria-hidden /> Propose trade
+            </ButtonLink>
+          )}
+          <MessageButton userId={counterpartId} name={name} />
+          <ContactReveal matchId={match.id} variant="secondary" className="w-full" />
         </aside>
       </div>
     </div>
