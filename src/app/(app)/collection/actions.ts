@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { refreshMatchesForUser } from "@/lib/matching";
-import { isLanguage } from "@/lib/card-language";
 
 async function requireUser() {
   const supabase = await createClient();
@@ -88,24 +87,6 @@ export async function removeFromCollection(id: string) {
   const { error } = await supabase
     .from("collection")
     .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
-
-  if (error) return { error: error.message };
-
-  await refreshMatchesForUser(user.id);
-  revalidatePath("/collection");
-  revalidatePath("/matches");
-  return { error: null };
-}
-
-export async function updateLanguage(id: string, language: string | null) {
-  if (language !== null && !isLanguage(language)) return { error: "Unknown language" };
-  const { supabase, user } = await requireUser();
-
-  const { error } = await supabase
-    .from("collection")
-    .update({ language })
     .eq("id", id)
     .eq("user_id", user.id);
 

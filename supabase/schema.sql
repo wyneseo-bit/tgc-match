@@ -213,9 +213,3 @@ alter table public.wants
 -- revoke is PUBLIC's, which also covers anon and authenticated. Idempotent:
 -- revoking a privilege that isn't held is a no-op.
 revoke execute on function public.handle_new_user() from public;
-
--- Migration: wants.language. collection.language already existed (unused);
--- wants had no language at all. A want with a null language accepts any
--- printing; a collection card with a null language is treated as English
--- (see lib/card-language.ts). Idempotent.
-alter table public.wants add column if not exists language text;

@@ -7,8 +7,7 @@ import { Binder, fillPage } from "@/components/Binder";
 import { Pills } from "@/components/Pills";
 import { cx, selectClass } from "@/components/ui";
 import { CONDITION_OPTIONS, type Condition } from "@/lib/card-condition";
-import { LANGUAGE_OPTIONS } from "@/lib/card-language";
-import { removeFromWants, updateCondition, updateLanguage, updatePriority } from "./actions";
+import { removeFromWants, updateCondition, updatePriority } from "./actions";
 
 type Card = {
   id: string;
@@ -24,7 +23,6 @@ export type WantItem = {
   id: string;
   priority: Priority;
   condition: Condition;
-  language: string | null;
   card: Card;
 };
 
@@ -43,7 +41,6 @@ function WantPocket({
 }) {
   const [priority, setPriority] = useState(item.priority);
   const [condition, setCondition] = useState(item.condition);
-  const [language, setLanguage] = useState(item.language ?? "");
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -75,7 +72,7 @@ function WantPocket({
         </div>
 
         <div className="mt-2.5 grid grid-cols-1 gap-1.5">
-          <span className="text-[11px] text-muted">Min. condition, language, priority</span>
+          <span className="text-[11px] text-muted">Min. condition, priority</span>
           <select
             aria-label={`Minimum condition accepted for ${item.card.name}`}
             value={condition}
@@ -89,25 +86,6 @@ function WantPocket({
             className={cx(selectClass, "h-8 w-full min-w-0 px-2.5 text-xs")}
           >
             {CONDITION_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label={`Language wanted for ${item.card.name}`}
-            value={language}
-            onChange={(e) => {
-              const value = e.target.value;
-              setLanguage(value);
-              startTransition(() => {
-                updateLanguage(item.id, value || null);
-              });
-            }}
-            className={cx(selectClass, "h-8 w-full min-w-0 px-2.5 text-xs")}
-          >
-            <option value="">Any language</option>
-            {LANGUAGE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
