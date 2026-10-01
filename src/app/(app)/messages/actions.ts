@@ -101,7 +101,12 @@ export async function sendMessage(conversationId: string, rawBody: string) {
 }
 
 export async function markConversationRead(conversationId: string) {
-  const { supabase, user } = await requireUser();
+  // Fired in the background from the thread; a lapsed session just skips it.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
   const { data: convo } = await supabase
     .from("conversations")
     .select("id, user_a_id")

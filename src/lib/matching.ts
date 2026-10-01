@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { satisfiesCondition } from "@/lib/card-condition";
+import { notify } from "@/lib/notify";
 
 type CollectionRow = {
   user_id: string;
@@ -167,6 +168,26 @@ export async function refreshMatchesForUser(userId: string) {
 
   if (staleIds.length > 0) {
     await admin.from("matches").delete().in("id", staleIds);
+  }
+
+  // The collector who triggered this refresh sees new matches on their own
+  // page; tell the other side of each brand-new match.
+  const existingOthers = new Set(
+    (existing ?? []).map((row) => (row.user_a_id === userId ? row.user_b_id : row.user_a_id)),
+  );
+  const newOthers = [...results.keys()].filter((id) => !existingOthers.has(id));
+  if (newOthers.length > 0) {
+    const { data: me } = await admin.from("users").select("display_name").eq("id", userId).single();
+    await Promise.all(
+      newOthers.map((otherId) =>
+        notify(otherId, {
+          kind: "match_new",
+          title: `New match with ${me?.display_name ?? "a collector"}`,
+          body: "They have something you want, and want something you have.",
+          href: "/matches",
+        }),
+      ),
+    );
   }
 
   for (const [otherUserId, result] of results) {
