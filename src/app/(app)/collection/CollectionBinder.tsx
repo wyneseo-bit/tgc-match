@@ -7,9 +7,11 @@ import { Binder, fillPage } from "@/components/Binder";
 import { Pills } from "@/components/Pills";
 import { cx, selectClass } from "@/components/ui";
 import { CONDITION_OPTIONS, type Condition } from "@/lib/card-condition";
+import { DEFAULT_LANGUAGE, LANGUAGE_OPTIONS } from "@/lib/card-language";
 import {
   removeFromCollection,
   updateCondition,
+  updateLanguage,
   updateQuantity,
   updateTradeStatus,
 } from "./actions";
@@ -29,6 +31,7 @@ export type CollectionItem = {
   quantity: number;
   trade_status: TradeStatus;
   condition: Condition;
+  language: string | null;
   card: Card;
 };
 
@@ -43,6 +46,7 @@ function CollectionPocket({ item, onRemove }: { item: CollectionItem; onRemove: 
   const [tradeStatus, setTradeStatus] = useState(item.trade_status);
   const [condition, setCondition] = useState(item.condition);
   const [quantity, setQuantity] = useState(item.quantity);
+  const [language, setLanguage] = useState(item.language ?? DEFAULT_LANGUAGE);
   const [isPending, startTransition] = useTransition();
 
   const changeQuantity = (value: number) => {
@@ -94,6 +98,24 @@ function CollectionPocket({ item, onRemove }: { item: CollectionItem; onRemove: 
             className={cx(selectClass, "h-8 w-full min-w-0 px-2.5 text-xs")}
           >
             {CONDITION_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label={`Language of ${item.card.name}`}
+            value={language}
+            onChange={(e) => {
+              const value = e.target.value;
+              setLanguage(value);
+              startTransition(() => {
+                updateLanguage(item.id, value);
+              });
+            }}
+            className={cx(selectClass, "h-8 w-full min-w-0 px-2.5 text-xs")}
+          >
+            {LANGUAGE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>

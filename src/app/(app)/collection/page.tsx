@@ -15,7 +15,7 @@ export default async function CollectionPage() {
   const { data, error } = await supabase
     .from("collection")
     .select(
-      "id, quantity, trade_status, condition, card:cards(id, name, set_name, card_number, image_url)",
+      "id, quantity, trade_status, condition, language, card:cards(id, name, set_name, card_number, image_url)",
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })

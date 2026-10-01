@@ -1,11 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { satisfiesCondition } from "@/lib/card-condition";
+import { satisfiesLanguage } from "@/lib/card-language";
 
 type CollectionRow = {
   user_id: string;
   card_id: string;
   condition: string | null;
   grade: string | null;
+  language: string | null;
 };
 
 type WantRow = {
@@ -13,6 +15,7 @@ type WantRow = {
   card_id: string;
   condition: string | null;
   grade: string | null;
+  language: string | null;
 };
 
 export type MatchedCard = {
@@ -69,13 +72,13 @@ export async function refreshMatchesForUser(userId: string) {
   const [{ data: myCollection }, { data: myWants }] = await Promise.all([
     admin
       .from("collection")
-      .select("user_id, card_id, condition, grade")
+      .select("user_id, card_id, condition, grade, language")
       .eq("user_id", userId)
       .in("trade_status", ["available", "maybe"])
       .returns<CollectionRow[]>(),
     admin
       .from("wants")
-      .select("user_id, card_id, condition, grade")
+      .select("user_id, card_id, condition, grade, language")
       .eq("user_id", userId)
       .returns<WantRow[]>(),
   ]);
@@ -86,13 +89,13 @@ export async function refreshMatchesForUser(userId: string) {
     [
       admin
         .from("collection")
-        .select("user_id, card_id, condition, grade")
+        .select("user_id, card_id, condition, grade, language")
         .in("trade_status", ["available", "maybe"])
         .neq("user_id", userId)
         .returns<CollectionRow[]>(),
       admin
         .from("wants")
-        .select("user_id, card_id, condition, grade")
+        .select("user_id, card_id, condition, grade, language")
         .neq("user_id", userId)
         .returns<WantRow[]>(),
     ],
@@ -113,10 +116,15 @@ export async function refreshMatchesForUser(userId: string) {
     const theirWants = wantsByOtherUser.get(otherUserId) ?? [];
     const theirWantByCard = new Map(theirWants.map((w) => [w.card_id, w]));
 
-    const iGiveThem = (myCollection ?? []).filter((c) =>
-      theirWantByCard.has(c.card_id),
-    );
-    const theyGiveMe = theirCollection.filter((c) => myWantByCard.has(c.card_id));
+    // A want that names a language only matches cards printed in it.
+    const iGiveThem = (myCollection ?? []).filter((c) => {
+      const want = theirWantByCard.get(c.card_id);
+      return !!want && satisfiesLanguage(c.language, want.language);
+    });
+    const theyGiveMe = theirCollection.filter((c) => {
+      const want = myWantByCard.get(c.card_id);
+      return !!want && satisfiesLanguage(c.language, want.language);
+    });
 
     // Reciprocal only: both directions must have at least one match.
     if (iGiveThem.length === 0 || theyGiveMe.length === 0) continue;
