@@ -1,4 +1,4 @@
-import { CalendarBlank, MapPin, SignOut } from "@phosphor-icons/react/dist/ssr";
+import { CalendarBlank, MapPin, PencilSimple, SignOut } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
 import { Pocket } from "@/components/Pocket";
@@ -130,7 +130,10 @@ export default async function ProfilePage() {
           </div>
         </div>
         <div className="mt-6 flex flex-wrap gap-3 border-t border-line pt-5">
-          <ButtonLink href="/collection" variant="secondary">
+          <ButtonLink href="/settings" variant="secondary">
+            <PencilSimple size={16} aria-hidden /> Edit profile
+          </ButtonLink>
+          <ButtonLink href="/collection" variant="ghost">
             Open binder
           </ButtonLink>
           <ButtonLink href="/matches" variant="ghost">
