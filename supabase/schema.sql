@@ -219,3 +219,187 @@ revoke execute on function public.handle_new_user() from public;
 -- with English ids. Because a printing is its own card, collection, wants
 -- and matching are language-exact with no extra columns. Idempotent.
 alter table public.cards add column if not exists language text not null default 'en';
+
+-- Migration: trades, messages, notifications (Phase 2).
+--
+-- Writes to every table below go through server actions using the
+-- service-role client, after checking who the caller is and what state the
+-- row is in (see app/(app)/trades/actions.ts, app/(app)/messages/actions.ts,
+-- lib/notify.ts). Clients only ever get SELECT on rows they are part of, so a
+-- participant cannot, say, mark a trade completed by writing to it directly.
+-- Idempotent.
+
+do $$ begin
+  if not exists (select 1 from pg_type where typname = 'trade_state') then
+    create type trade_state as enum ('proposed', 'accepted', 'declined', 'cancelled', 'completed');
+  end if;
+end $$;
+
+create table if not exists public.trades (
+  id uuid primary key default gen_random_uuid(),
+  -- Human-readable Trade ID printed on the receipt.
+  code text not null unique default ('TM-' || upper(substr(encode(gen_random_bytes(5), 'hex'), 1, 8))),
+  match_id uuid references public.matches(id) on delete set null,
+  proposer_id uuid not null references public.users(id) on delete cascade,
+  recipient_id uuid not null references public.users(id) on delete cascade,
+  status trade_state not null default 'proposed',
+  -- Meetup only for now: no shipping, no protection.
+  meetup_place text not null,
+  meetup_at timestamptz,
+  note text,
+  accepted_at timestamptz,
+  responded_at timestamptz,
+  cancelled_by uuid references public.users(id) on delete set null,
+  -- Both collectors confirm the handover; a photo is encouraged, not required.
+  proposer_confirmed_at timestamptz,
+  recipient_confirmed_at timestamptz,
+  proposer_photo_path text,
+  recipient_photo_path text,
+  completed_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint trades_distinct_users check (proposer_id <> recipient_id)
+);
+
+create index if not exists trades_proposer_idx on public.trades (proposer_id);
+create index if not exists trades_recipient_idx on public.trades (recipient_id);
+create index if not exists trades_match_idx on public.trades (match_id);
+
+create table if not exists public.trade_items (
+  id uuid primary key default gen_random_uuid(),
+  trade_id uuid not null references public.trades(id) on delete cascade,
+  giver_id uuid not null references public.users(id) on delete cascade,
+  card_id text not null references public.cards(id),
+  -- Snapshot of the giver's card condition at proposal time. Language is
+  -- part of the card itself (cards.language).
+  condition card_condition,
+  quantity int not null default 1 check (quantity > 0)
+);
+
+create index if not exists trade_items_trade_idx on public.trade_items (trade_id);
+
+alter table public.trades enable row level security;
+alter table public.trade_items enable row level security;
+
+drop policy if exists "trades visible to participants" on public.trades;
+create policy "trades visible to participants" on public.trades
+  for select using (auth.uid() = proposer_id or auth.uid() = recipient_id);
+
+drop policy if exists "trade items visible to participants" on public.trade_items;
+create policy "trade items visible to participants" on public.trade_items
+  for select using (
+    exists (
+      select 1 from public.trades t
+      where t.id = trade_id and (auth.uid() = t.proposer_id or auth.uid() = t.recipient_id)
+    )
+  );
+
+-- Handover photos: private bucket, one folder per trade, one sub-folder per
+-- collector: trade-photos/<trade_id>/<user_id>/<file>. Participants upload
+-- straight from the browser into their own sub-folder and can view both.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('trade-photos', 'trade-photos', false, 8388608, array['image/jpeg', 'image/png', 'image/webp', 'image/heic'])
+on conflict (id) do nothing;
+
+drop policy if exists "trade photos upload by participant" on storage.objects;
+create policy "trade photos upload by participant" on storage.objects
+  for insert to authenticated with check (
+    bucket_id = 'trade-photos'
+    and (storage.foldername(name))[2] = auth.uid()::text
+    and exists (
+      select 1 from public.trades t
+      where t.id::text = (storage.foldername(name))[1]
+        and t.status = 'accepted'
+        and auth.uid() in (t.proposer_id, t.recipient_id)
+    )
+  );
+
+drop policy if exists "trade photos visible to participants" on storage.objects;
+create policy "trade photos visible to participants" on storage.objects
+  for select to authenticated using (
+    bucket_id = 'trade-photos'
+    and exists (
+      select 1 from public.trades t
+      where t.id::text = (storage.foldername(name))[1]
+        and auth.uid() in (t.proposer_id, t.recipient_id)
+    )
+  );
+
+-- Messages: one conversation per pair of collectors (user_a_id < user_b_id,
+-- like matches). Unread state is a last-read timestamp per side.
+create table if not exists public.conversations (
+  id uuid primary key default gen_random_uuid(),
+  user_a_id uuid not null references public.users(id) on delete cascade,
+  user_b_id uuid not null references public.users(id) on delete cascade,
+  last_message_at timestamptz,
+  last_message_preview text,
+  last_sender_id uuid references public.users(id) on delete set null,
+  user_a_read_at timestamptz,
+  user_b_read_at timestamptz,
+  created_at timestamptz not null default now(),
+  constraint conversations_sorted_pair check (user_a_id < user_b_id),
+  constraint conversations_unique_pair unique (user_a_id, user_b_id)
+);
+
+create index if not exists conversations_user_a_idx on public.conversations (user_a_id);
+create index if not exists conversations_user_b_idx on public.conversations (user_b_id);
+
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  conversation_id uuid not null references public.conversations(id) on delete cascade,
+  sender_id uuid not null references public.users(id) on delete cascade,
+  body text not null check (char_length(body) between 1 and 2000),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists messages_conversation_idx on public.messages (conversation_id, created_at);
+
+alter table public.conversations enable row level security;
+alter table public.messages enable row level security;
+
+drop policy if exists "conversations visible to participants" on public.conversations;
+create policy "conversations visible to participants" on public.conversations
+  for select using (auth.uid() = user_a_id or auth.uid() = user_b_id);
+
+drop policy if exists "messages visible to participants" on public.messages;
+create policy "messages visible to participants" on public.messages
+  for select using (
+    exists (
+      select 1 from public.conversations c
+      where c.id = conversation_id and (auth.uid() = c.user_a_id or auth.uid() = c.user_b_id)
+    )
+  );
+
+-- Live message updates (Supabase Realtime respects the select policy above).
+do $$ begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'messages'
+  ) then
+    alter publication supabase_realtime add table public.messages;
+  end if;
+end $$;
+
+-- Notifications: written server-side on trade events, new matches and new
+-- messages; each collector reads only their own.
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  kind text not null,
+  title text not null,
+  body text,
+  href text,
+  -- Lets repeated events (several messages in one conversation) refresh a
+  -- single unread notification instead of stacking up.
+  group_key text,
+  read_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists notifications_user_idx on public.notifications (user_id, created_at desc);
+
+alter table public.notifications enable row level security;
+
+drop policy if exists "notifications visible to owner" on public.notifications;
+create policy "notifications visible to owner" on public.notifications
+  for select using (auth.uid() = user_id);
