@@ -59,6 +59,10 @@ export default function CardsPage() {
     null,
   );
 
+  // How many other collectors hold each card for trade, filled in after each
+  // result set loads so the search itself never waits on it.
+  const [holders, setHolders] = useState<Record<string, number>>({});
+
   const inflight = useRef<AbortController | null>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -218,6 +222,28 @@ export default function CardsPage() {
     }
   }
 
+  useEffect(() => {
+    const missing = cards.map((c) => c.id).filter((id) => !(id in holders));
+    if (missing.length === 0) return;
+    const controller = new AbortController();
+    fetch(`/api/cards/holders?ids=${encodeURIComponent(missing.join(","))}`, { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { counts: Record<string, number> } | null) => {
+        if (!json) return;
+        setHolders((prev) => {
+          const next = { ...prev };
+          for (const id of missing) next[id] = json.counts[id] ?? 0;
+          return next;
+        });
+      })
+      .catch(() => {
+        // Counts are a nice-to-have; cards still show without them.
+      });
+    return () => controller.abort();
+    // Only re-run when the result set changes, not when counts arrive.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cards]);
+
   const showEmpty = status === "idle" && mode === "search" && cards.length === 0;
 
   return (
@@ -316,6 +342,13 @@ export default function CardsPage() {
                   <div className="truncate text-xs text-muted">
                     {card.set_name}, #{card.card_number}
                   </div>
+                  {card.id in holders && (
+                    <div className={cx("mt-1 text-xs font-medium", holders[card.id] > 0 ? "text-fg-2" : "text-muted")}>
+                      {holders[card.id] > 0
+                        ? `${holders[card.id]} collector${holders[card.id] === 1 ? " has" : "s have"} it`
+                        : "Nobody has it yet"}
+                    </div>
+                  )}
                 </div>
                 <div className="mt-2.5 grid grid-cols-2 gap-1.5">
                   <button
