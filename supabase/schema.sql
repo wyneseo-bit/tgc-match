@@ -227,7 +227,8 @@ alter table public.cards add column if not exists language text not null default
 -- row is in (see app/(app)/trades/actions.ts, app/(app)/messages/actions.ts,
 -- lib/notify.ts). Clients only ever get SELECT on rows they are part of, so a
 -- participant cannot, say, mark a trade completed by writing to it directly.
--- Idempotent.
+-- Policies call (select auth.uid()) so it's evaluated once per query, not
+-- per row. Idempotent. Applied to production 2026-10-01.
 
 do $$ begin
   if not exists (select 1 from pg_type where typname = 'trade_state') then
@@ -238,7 +239,7 @@ end $$;
 create table if not exists public.trades (
   id uuid primary key default gen_random_uuid(),
   -- Human-readable Trade ID printed on the receipt.
-  code text not null unique default ('TM-' || upper(substr(encode(gen_random_bytes(5), 'hex'), 1, 8))),
+  code text not null unique default ('TM-' || upper(substr(encode(extensions.gen_random_bytes(5), 'hex'), 1, 8))),
   match_id uuid references public.matches(id) on delete set null,
   proposer_id uuid not null references public.users(id) on delete cascade,
   recipient_id uuid not null references public.users(id) on delete cascade,
@@ -264,6 +265,7 @@ create table if not exists public.trades (
 create index if not exists trades_proposer_idx on public.trades (proposer_id);
 create index if not exists trades_recipient_idx on public.trades (recipient_id);
 create index if not exists trades_match_idx on public.trades (match_id);
+create index if not exists trades_cancelled_by_idx on public.trades (cancelled_by);
 
 create table if not exists public.trade_items (
   id uuid primary key default gen_random_uuid(),
@@ -277,20 +279,22 @@ create table if not exists public.trade_items (
 );
 
 create index if not exists trade_items_trade_idx on public.trade_items (trade_id);
+create index if not exists trade_items_card_idx on public.trade_items (card_id);
+create index if not exists trade_items_giver_idx on public.trade_items (giver_id);
 
 alter table public.trades enable row level security;
 alter table public.trade_items enable row level security;
 
 drop policy if exists "trades visible to participants" on public.trades;
 create policy "trades visible to participants" on public.trades
-  for select using (auth.uid() = proposer_id or auth.uid() = recipient_id);
+  for select using ((select auth.uid()) = proposer_id or (select auth.uid()) = recipient_id);
 
 drop policy if exists "trade items visible to participants" on public.trade_items;
 create policy "trade items visible to participants" on public.trade_items
   for select using (
     exists (
       select 1 from public.trades t
-      where t.id = trade_id and (auth.uid() = t.proposer_id or auth.uid() = t.recipient_id)
+      where t.id = trade_id and ((select auth.uid()) = t.proposer_id or (select auth.uid()) = t.recipient_id)
     )
   );
 
@@ -343,6 +347,7 @@ create table if not exists public.conversations (
 
 create index if not exists conversations_user_a_idx on public.conversations (user_a_id);
 create index if not exists conversations_user_b_idx on public.conversations (user_b_id);
+create index if not exists conversations_last_sender_idx on public.conversations (last_sender_id);
 
 create table if not exists public.messages (
   id uuid primary key default gen_random_uuid(),
@@ -353,20 +358,21 @@ create table if not exists public.messages (
 );
 
 create index if not exists messages_conversation_idx on public.messages (conversation_id, created_at);
+create index if not exists messages_sender_idx on public.messages (sender_id);
 
 alter table public.conversations enable row level security;
 alter table public.messages enable row level security;
 
 drop policy if exists "conversations visible to participants" on public.conversations;
 create policy "conversations visible to participants" on public.conversations
-  for select using (auth.uid() = user_a_id or auth.uid() = user_b_id);
+  for select using ((select auth.uid()) = user_a_id or (select auth.uid()) = user_b_id);
 
 drop policy if exists "messages visible to participants" on public.messages;
 create policy "messages visible to participants" on public.messages
   for select using (
     exists (
       select 1 from public.conversations c
-      where c.id = conversation_id and (auth.uid() = c.user_a_id or auth.uid() = c.user_b_id)
+      where c.id = conversation_id and ((select auth.uid()) = c.user_a_id or (select auth.uid()) = c.user_b_id)
     )
   );
 
@@ -402,4 +408,4 @@ alter table public.notifications enable row level security;
 
 drop policy if exists "notifications visible to owner" on public.notifications;
 create policy "notifications visible to owner" on public.notifications
-  for select using (auth.uid() = user_id);
+  for select using ((select auth.uid()) = user_id);
