@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getFilterOptions, searchCardsFiltered } from "@/lib/tcgdex";
+import { getFilterOptions, searchCardsFiltered, searchJapaneseCards } from "@/lib/tcgdex";
+import { dexIdsForEnglish, isJapaneseText } from "@/lib/dex-lookup";
 import { parseQuery } from "@/lib/card-search";
 import { isFinish, isIgnoreKey, type IgnoreKey } from "@/lib/card-filters";
 
@@ -32,6 +33,39 @@ export async function GET(request: Request) {
   const ignore = new Set<IgnoreKey>(
     (searchParams.get("ignore") ?? "").split(",").filter(isIgnoreKey),
   );
+
+  // Japanese cards: no set/rarity/type filters (those are English data);
+  // English names are looked up by Pokédex number, Japanese text by name.
+  if (searchParams.get("lang") === "ja") {
+    const numberMatch = text.match(/(?:^|\s)#?(\d{1,4})(?:\/\d{1,4})?(?=\s|$)/);
+    const number = numberMatch ? String(Number(numberMatch[1])) : null;
+    const nameText = (numberMatch ? text.replace(numberMatch[0], " ") : text).trim();
+    const japanese = isJapaneseText(nameText);
+    const dexIds = japanese ? [] : dexIdsForEnglish(nameText);
+    if (!japanese && dexIds.length === 0) {
+      return NextResponse.json({ cards: [], hasMore: false, interpretation: null });
+    }
+    try {
+      const result = await searchJapaneseCards({
+        nativeName: japanese ? nameText : undefined,
+        dexIds,
+        number,
+        page,
+      });
+      if (result.cards.length > 0) {
+        const { error: upsertError } = await createAdminClient().from("cards").upsert(result.cards);
+        if (upsertError) {
+          return NextResponse.json({ error: upsertError.message }, { status: 500 });
+        }
+      }
+      return NextResponse.json({ cards: result.cards, hasMore: result.hasMore, interpretation: null });
+    } catch (err) {
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "TCGdex request failed" },
+        { status: 502 },
+      );
+    }
+  }
 
   let options: Awaited<ReturnType<typeof getFilterOptions>>;
   try {

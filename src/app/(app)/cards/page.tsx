@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Books, Check, Heart, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { PocketSlot } from "@/components/Card";
 import { Pocket } from "@/components/Pocket";
+import { Pills } from "@/components/Pills";
 import { buttonClass, cx, fieldClass } from "@/components/ui";
 import {
   type CardFilters as Filters,
@@ -22,9 +23,11 @@ type Card = {
   set_name: string;
   card_number: string;
   image_url: string | null;
+  language?: string | null;
 };
 
 type AddKind = "collection" | "wants";
+type CardLang = "en" | "ja";
 
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
@@ -59,6 +62,15 @@ export default function CardsPage() {
     null,
   );
 
+  // How many other collectors hold each card for trade, filled in after each
+  // result set loads so the search itself never waits on it.
+  const [holders, setHolders] = useState<Record<string, number>>({});
+
+  // Which printing to browse. Read through a ref inside the fetch helpers so
+  // a debounced search always uses the language picked most recently.
+  const [lang, setLang] = useState<CardLang>("en");
+  const langRef = useRef<CardLang>("en");
+
   const inflight = useRef<AbortController | null>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -80,7 +92,7 @@ export default function CardsPage() {
     setStatus("loading");
 
     try {
-      const res = await fetch("/api/cards/popular", { signal });
+      const res = await fetch(`/api/cards/popular?lang=${langRef.current}`, { signal });
       const json = await res.json();
 
       if (!res.ok) {
@@ -134,6 +146,7 @@ export default function CardsPage() {
 
     const params = new URLSearchParams();
     if (text.length >= MIN_QUERY_LENGTH) params.set("q", text);
+    if (langRef.current !== "en") params.set("lang", langRef.current);
     if (activeFilters.setId) params.set("set", activeFilters.setId);
     if (activeFilters.rarity) params.set("rarity", activeFilters.rarity);
     if (activeFilters.type) params.set("type", activeFilters.type);
@@ -182,6 +195,18 @@ export default function CardsPage() {
     );
   }
 
+  function handleLangChange(next: CardLang) {
+    if (next === langRef.current) return;
+    if (debounce.current) clearTimeout(debounce.current);
+    langRef.current = next;
+    setLang(next);
+    // Set, rarity and type filters only exist for the English catalogue.
+    setFilters({});
+    setIgnore([]);
+    setCards([]);
+    runSearch(query, {}, []);
+  }
+
   function handleFiltersChange(next: Filters) {
     if (debounce.current) clearTimeout(debounce.current);
     setFilters(next);
@@ -218,6 +243,28 @@ export default function CardsPage() {
     }
   }
 
+  useEffect(() => {
+    const missing = cards.map((c) => c.id).filter((id) => !(id in holders));
+    if (missing.length === 0) return;
+    const controller = new AbortController();
+    fetch(`/api/cards/holders?ids=${encodeURIComponent(missing.join(","))}`, { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { counts: Record<string, number> } | null) => {
+        if (!json) return;
+        setHolders((prev) => {
+          const next = { ...prev };
+          for (const id of missing) next[id] = json.counts[id] ?? 0;
+          return next;
+        });
+      })
+      .catch(() => {
+        // Counts are a nice-to-have; cards still show without them.
+      });
+    return () => controller.abort();
+    // Only re-run when the result set changes, not when counts arrive.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cards]);
+
   const showEmpty = status === "idle" && mode === "search" && cards.length === 0;
 
   return (
@@ -225,7 +272,7 @@ export default function CardsPage() {
       <header>
         <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Discover</h1>
         <p className="mt-2 text-muted">
-          Search the Pokémon TCG catalogue and drop cards into your binder or your wants.
+          Search English and Japanese Pokémon cards and drop them into your binder or your wants.
         </p>
       </header>
 
@@ -244,7 +291,7 @@ export default function CardsPage() {
             type="search"
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
-            placeholder='Try "pikachu 30" or "salamence ex delta"'
+            placeholder={lang === "ja" ? 'Try "umbreon", "ブラッキー" or "charizard 201"' : 'Try "pikachu 30" or "salamence ex delta"'}
             autoComplete="off"
             className={fieldClass(false, "h-13 pl-12 pr-12 text-base")}
           />
@@ -260,14 +307,32 @@ export default function CardsPage() {
           )}
         </div>
 
-        {options && (
+        <div className="mt-4">
+          <Pills
+            label="Card language"
+            value={lang}
+            onChange={handleLangChange}
+            options={[
+              { value: "en", label: "English" },
+              { value: "ja", label: "Japanese" },
+            ]}
+          />
+        </div>
+
+        {lang === "ja" && (
+          <p className="mt-3 text-sm text-muted">
+            Search Japanese cards by Pokémon name in English or Japanese. Trainer cards need their Japanese name.
+          </p>
+        )}
+
+        {options && lang === "en" && (
           <div className="mt-4">
             <CardFilters options={options} filters={filters} onChange={handleFiltersChange} />
           </div>
         )}
       </div>
 
-      {mode === "search" && interpretation && (
+      {mode === "search" && interpretation && lang === "en" && (
         <div className="mt-5">
           <SearchHints
             query={query}
@@ -282,7 +347,9 @@ export default function CardsPage() {
       <section aria-label="Cards" className="mt-8">
         <div aria-live="polite">
           {mode === "popular" && status !== "error" && (
-            <h2 className="font-display text-xl font-semibold tracking-tight">Popular cards</h2>
+            <h2 className="font-display text-xl font-semibold tracking-tight">
+              Popular {lang === "ja" ? "Japanese " : ""}cards
+            </h2>
           )}
           {status === "loading" && !loadingMore && (
             <p className="mt-2 flex items-center gap-3 text-sm text-muted">
@@ -316,6 +383,13 @@ export default function CardsPage() {
                   <div className="truncate text-xs text-muted">
                     {card.set_name}, #{card.card_number}
                   </div>
+                  {card.id in holders && (
+                    <div className={cx("mt-1 text-xs font-medium", holders[card.id] > 0 ? "text-fg-2" : "text-muted")}>
+                      {holders[card.id] > 0
+                        ? `${holders[card.id]} collector${holders[card.id] === 1 ? " has" : "s have"} it`
+                        : "Nobody has it yet"}
+                    </div>
+                  )}
                 </div>
                 <div className="mt-2.5 grid grid-cols-2 gap-1.5">
                   <button

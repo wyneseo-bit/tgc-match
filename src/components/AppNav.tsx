@@ -89,7 +89,7 @@ export function Sidebar({
   const secondary: Item[] = [
     { href: null, label: "Messages", icon: ChatCircle },
     { href: "/profile", label: "Profile", icon: UserCircle },
-    { href: null, label: "Settings", icon: Gear },
+    { href: "/settings", label: "Settings", icon: Gear },
   ];
 
   return (

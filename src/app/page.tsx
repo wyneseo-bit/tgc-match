@@ -36,7 +36,12 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect("/matches");
+    // A brand-new collector with an empty binder starts with onboarding.
+    const [{ count: haves }, { count: wants }] = await Promise.all([
+      supabase.from("collection").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("wants").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    ]);
+    redirect(!haves && !wants ? "/onboarding" : "/matches");
   }
 
   const marquee = Object.values(DEMO_CARDS);
@@ -163,6 +168,7 @@ export default async function Home() {
               counterpartVerified
               counterpartLocation={DEMO_COLLECTOR.location}
               featured
+              linkProfile={false}
             />
           </Reveal>
         </div>

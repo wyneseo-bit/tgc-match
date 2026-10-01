@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { POPULAR_CARD_IDS, getCardsByIds, type CachedCard } from "@/lib/tcgdex";
+import {
+  POPULAR_CARD_IDS,
+  POPULAR_JA_CARD_IDS,
+  cardKey,
+  getCardsByIds,
+  getJapaneseCardsByIds,
+  type CachedCard,
+} from "@/lib/tcgdex";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const japanese = new URL(request.url).searchParams.get("lang") === "ja";
+  const keys = japanese ? POPULAR_JA_CARD_IDS.map((id) => cardKey("ja", id)) : POPULAR_CARD_IDS;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -17,19 +27,21 @@ export async function GET() {
 
   const { data: cached, error: cacheError } = await admin
     .from("cards")
-    .select("id, name, set_name, card_number, image_url")
-    .in("id", POPULAR_CARD_IDS);
+    .select("id, name, set_name, card_number, image_url, language")
+    .in("id", keys);
 
   if (cacheError) {
     return NextResponse.json({ error: cacheError.message }, { status: 500 });
   }
 
   const cachedById = new Map((cached ?? []).map((c) => [c.id, c as CachedCard]));
-  const missingIds = POPULAR_CARD_IDS.filter((id) => !cachedById.has(id));
+  const missingIds = keys.filter((id) => !cachedById.has(id));
 
   if (missingIds.length > 0) {
     try {
-      const fetched = await getCardsByIds(missingIds);
+      const fetched = japanese
+        ? await getJapaneseCardsByIds(missingIds.map((k) => k.replace(/^ja:/, "")))
+        : await getCardsByIds(missingIds);
       const { error: upsertError } = await admin.from("cards").upsert(fetched);
       if (upsertError) {
         return NextResponse.json({ error: upsertError.message }, { status: 500 });
@@ -47,7 +59,7 @@ export async function GET() {
     }
   }
 
-  const cards = POPULAR_CARD_IDS.map((id) => cachedById.get(id)).filter(
+  const cards = keys.map((id) => cachedById.get(id)).filter(
     (c): c is CachedCard => c !== undefined,
   );
 

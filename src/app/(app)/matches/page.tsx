@@ -20,6 +20,7 @@ type CardInfo = {
   set_name: string;
   card_number: string;
   image_url: string | null;
+  language?: string | null;
 };
 
 export const metadata = { title: "Matches" };
@@ -59,7 +60,7 @@ export default async function MatchesPage() {
     cardIds.size
       ? supabase
           .from("cards")
-          .select("id, name, set_name, card_number, image_url")
+          .select("id, name, set_name, card_number, image_url, language")
           .in("id", Array.from(cardIds))
       : Promise.resolve({ data: [] }),
   ]);
@@ -79,6 +80,7 @@ export default async function MatchesPage() {
       setName: card?.set_name ?? "",
       cardNumber: card?.card_number ?? "",
       imageUrl: card?.image_url ?? null,
+      language: card?.language ?? null,
     };
   };
 

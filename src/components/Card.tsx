@@ -9,6 +9,8 @@ export type CardFace = {
   set_name?: string | null;
   card_number?: string | null;
   image_url: string | null;
+  /** "en" (default) or "ja". Japanese printings get a small JP tag. */
+  language?: string | null;
 };
 
 function alt(card: CardFace) {
@@ -38,6 +40,11 @@ export function TcgCard({ card, className }: { card: CardFace; className?: strin
           <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-fg-2">{card.name}</span>
           <span className="font-mono text-[10px] text-muted">{card.card_number}</span>
         </div>
+      )}
+      {card.language === "ja" && (
+        <span className="absolute bottom-[4%] left-[5%] rounded-[3px] bg-night/85 px-1 py-px font-mono text-[9px] font-semibold leading-none tracking-wide text-fg ring-1 ring-white/15">
+          JP
+        </span>
       )}
     </div>
   );

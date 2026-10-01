@@ -15,6 +15,7 @@ type Card = {
   set_name: string;
   card_number: string;
   image_url: string | null;
+  language?: string | null;
 };
 
 type Priority = "low" | "medium" | "high";
@@ -29,11 +30,14 @@ export type WantItem = {
 function WantPocket({
   item,
   matchCount,
+  holderCount,
   onRemove,
 }: {
   item: WantItem;
   /** How many of your matches include this card. */
   matchCount: number;
+  /** How many other collectors hold this card for trade. */
+  holderCount: number;
   onRemove: () => void;
 }) {
   const [priority, setPriority] = useState(item.priority);
@@ -43,7 +47,7 @@ function WantPocket({
   return (
     <div className="min-w-0">
       <div className="relative">
-        <EmptySlot card={item.card} lit={matchCount > 0} />
+        <EmptySlot card={item.card} lit={matchCount > 0 || holderCount > 0} />
         {priority === "high" && (
           <span className="absolute -top-2 right-3 rounded-t-[6px] rounded-b-[3px] bg-pear px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-pear-ink">
             Top
@@ -55,8 +59,17 @@ function WantPocket({
         <div className="truncate text-xs text-muted">
           {item.card.set_name}, #{item.card.card_number}
         </div>
-        <div className={cx("mt-1.5 text-xs font-medium", matchCount > 0 ? "text-pear" : "text-muted")}>
-          {matchCount > 0 ? `In ${matchCount} match${matchCount > 1 ? "es" : ""}` : "No match yet"}
+        <div
+          className={cx(
+            "mt-1.5 text-xs font-medium",
+            matchCount > 0 ? "text-pear" : holderCount > 0 ? "text-fg-2" : "text-muted",
+          )}
+        >
+          {matchCount > 0
+            ? `In ${matchCount} match${matchCount > 1 ? "es" : ""}`
+            : holderCount > 0
+              ? `${holderCount} collector${holderCount > 1 ? "s have" : " has"} it`
+              : "Nobody has it yet"}
         </div>
 
         <div className="mt-2.5 grid grid-cols-1 gap-1.5">
@@ -123,9 +136,11 @@ type Filter = "all" | "matched" | Priority;
 export function WantsBinder({
   items,
   matchCounts,
+  holderCounts,
 }: {
   items: WantItem[];
   matchCounts: Record<string, number>;
+  holderCounts: Record<string, number>;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [removed, setRemoved] = useState<Set<string>>(new Set());
@@ -141,6 +156,7 @@ export function WantsBinder({
         key={item.id}
         item={item}
         matchCount={matchCounts[item.card.id] ?? 0}
+        holderCount={holderCounts[item.card.id] ?? 0}
         onRemove={() => setRemoved((r) => new Set(r).add(item.id))}
       />
     )),

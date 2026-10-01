@@ -9,6 +9,7 @@ export type MatchCardSide = {
   setName: string;
   cardNumber: string;
   imageUrl: string | null;
+  language?: string | null;
 };
 
 /** Up to three cards fanned out; the rest are counted in the caption. */
@@ -22,7 +23,7 @@ function Fan({ cards, align }: { cards: MatchCardSide[]; align: "left" | "right"
           className={cx("w-[78%] max-w-[150px] shrink-0", i > 0 && "-ml-[52%] mt-3")}
           style={{ zIndex: shown.length - i }}
         >
-          <TcgCard card={{ name: c.name, set_name: c.setName, card_number: c.cardNumber, image_url: c.imageUrl }} />
+          <TcgCard card={{ name: c.name, set_name: c.setName, card_number: c.cardNumber, image_url: c.imageUrl, language: c.language }} />
         </div>
       ))}
     </div>
@@ -49,6 +50,7 @@ export function MatchCard({
   featured,
   action,
   href,
+  linkProfile = true,
 }: {
   id: string;
   score: number;
@@ -63,6 +65,8 @@ export function MatchCard({
   action?: React.ReactNode;
   /** Where "View match" goes. Defaults to the match detail page. */
   href?: string;
+  /** Link the collector's name to their profile. Off for demo tiles. */
+  linkProfile?: boolean;
 }) {
   return (
     <article
@@ -100,7 +104,13 @@ export function MatchCard({
       <div className="mt-5 flex items-center gap-3 border-t border-line pt-4">
         <Avatar seed={counterpartId} verified={counterpartVerified} size={40} />
         <div className="min-w-0 flex-1 text-sm">
-          <div className="truncate font-medium text-fg">{counterpartName}</div>
+          {linkProfile ? (
+            <Link href={`/collectors/${counterpartId}`} className="block truncate font-medium text-fg hover:underline">
+              {counterpartName}
+            </Link>
+          ) : (
+            <div className="truncate font-medium text-fg">{counterpartName}</div>
+          )}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-muted">
             {counterpartVerified ? (
               <span className="inline-flex items-center gap-1 text-seal">

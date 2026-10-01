@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { MatchedCard } from "@/lib/matching";
 import { EmptyState } from "@/components/EmptyState";
+import { getHolderCounts } from "@/lib/holders";
 import { WantsBinder, type WantItem } from "./WantsBinder";
 
 export const metadata = { title: "Wants" };
@@ -22,7 +23,7 @@ export default async function WantsPage() {
     supabase
       .from("wants")
       .select(
-        "id, priority, condition, card:cards(id, name, set_name, card_number, image_url)",
+        "id, priority, condition, card:cards(id, name, set_name, card_number, image_url, language)",
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
@@ -55,19 +56,24 @@ export default async function WantsPage() {
     }
   }
 
+  const holderCounts = await getHolderCounts(
+    (data ?? []).map((w) => w.card.id),
+    user.id,
+  ).catch(() => ({}) as Record<string, number>);
+
   return (
     <div>
       <header>
         <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Your wants</h1>
         <p className="mt-2 max-w-[56ch] text-muted">
-          Every empty pocket is a card you&apos;re looking for. Lit pockets are already part of a match.
+          Every empty pocket is a card you&apos;re looking for. Lit pockets mean someone on the network has it.
         </p>
       </header>
 
       {error && <p className="mt-6 text-sm text-danger">{error.message}</p>}
 
       <div className="mt-8">
-        <WantsBinder items={data ?? []} matchCounts={matchCounts} />
+        <WantsBinder items={data ?? []} matchCounts={matchCounts} holderCounts={holderCounts} />
       </div>
     </div>
   );

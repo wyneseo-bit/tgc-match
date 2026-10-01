@@ -27,6 +27,7 @@ type CardInfo = {
   set_name: string;
   card_number: string;
   image_url: string | null;
+  language?: string | null;
 };
 
 function timeAgo(iso: string, now: number) {
@@ -83,7 +84,7 @@ export default async function MatchDetailPage({
     cardIds.length
       ? supabase
           .from("cards")
-          .select("id, name, set_name, card_number, image_url")
+          .select("id, name, set_name, card_number, image_url, language")
           .in("id", cardIds)
       : Promise.resolve({ data: [] }),
   ]);
@@ -209,7 +210,9 @@ export default async function MatchDetailPage({
               <div className="flex items-center gap-3">
                 <Avatar seed={counterpartId} verified={counterpart?.verified ?? false} size={48} />
                 <div className="min-w-0">
-                  <div className="truncate font-medium text-fg">{name}</div>
+                  <Link href={`/collectors/${counterpartId}`} className="block truncate font-medium text-fg hover:underline">
+                    {name}
+                  </Link>
                   {counterpart?.location && (
                     <div className="flex items-center gap-1 text-sm text-muted">
                       <MapPin size={14} aria-hidden /> {counterpart.location}
