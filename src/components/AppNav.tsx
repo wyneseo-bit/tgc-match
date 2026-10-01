@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ArrowsLeftRight,
+  Bell,
   Books,
   ChatCircle,
   Compass,
@@ -23,6 +24,28 @@ import { buttonClass, cx } from "./ui";
 
 /** `href: null` marks a section that isn't built yet: shown, but not a link. */
 type Item = { href: string | null; label: string; icon: Icon; badge?: string };
+
+export type NavBadges = { matches: number; notifications: number; messages: number; trades: number };
+
+const count = (n: number) => (n > 0 ? (n > 9 ? "9+" : String(n)) : undefined);
+
+/** Icon link with a small count bubble, for the bell and messages. */
+function BadgeIcon({ href, label, icon: Icon, n }: { href: string; label: string; icon: Icon; n: number }) {
+  return (
+    <Link
+      href={href}
+      aria-label={n > 0 ? `${label}, ${n} unread` : label}
+      className="relative grid size-11 place-items-center rounded-full text-fg-2 transition hover:bg-white/5 hover:text-fg"
+    >
+      <Icon size={22} aria-hidden />
+      {n > 0 && (
+        <span className="absolute right-1 top-1 grid min-w-5 place-items-center rounded-full bg-pear px-1 text-[10px] font-bold leading-5 text-pear-ink">
+          {count(n)}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 function useActive() {
   const path = usePathname();
@@ -70,12 +93,12 @@ export function Sidebar({
   userId,
   displayName,
   verified,
-  matchCount,
+  badges,
 }: {
   userId: string;
   displayName: string;
   verified: boolean;
-  matchCount: number;
+  badges: NavBadges;
 }) {
   const isActive = useActive();
 
@@ -83,11 +106,11 @@ export function Sidebar({
     { href: "/cards", label: "Discover", icon: Compass },
     { href: "/collection", label: "Collection", icon: Books },
     { href: "/wants", label: "Wants", icon: Heart },
-    { href: "/matches", label: "Matches", icon: Sparkle, badge: matchCount ? String(matchCount) : undefined },
-    { href: null, label: "Trades", icon: ArrowsLeftRight },
+    { href: "/matches", label: "Matches", icon: Sparkle, badge: badges.matches ? String(badges.matches) : undefined },
+    { href: "/trades", label: "Trades", icon: ArrowsLeftRight, badge: count(badges.trades) },
   ];
   const secondary: Item[] = [
-    { href: null, label: "Messages", icon: ChatCircle },
+    { href: "/messages", label: "Messages", icon: ChatCircle, badge: count(badges.messages) },
     { href: "/profile", label: "Profile", icon: UserCircle },
     { href: "/settings", label: "Settings", icon: Gear },
   ];
@@ -102,8 +125,9 @@ export function Sidebar({
         <span className="ring-hole" />
       </div>
 
-      <div className="px-5 pb-4 pt-6">
+      <div className="flex items-center justify-between gap-2 pb-4 pl-5 pr-3 pt-5">
         <Logo href="/matches" />
+        <BadgeIcon href="/notifications" label="Notifications" icon={Bell} n={badges.notifications} />
       </div>
       <div className="px-4">
         <Link href="/cards" className={buttonClass("primary", "md", "w-full")}>
@@ -154,25 +178,30 @@ export function Sidebar({
   );
 }
 
-export function MobileTopBar() {
+export function MobileTopBar({ userId, badges }: { userId: string; badges: NavBadges }) {
   return (
-    <div className="glass sticky top-0 z-30 flex h-14 items-center justify-between rounded-none border-x-0 border-t-0 px-4 lg:hidden">
+    <div className="glass sticky top-0 z-30 flex h-14 items-center justify-between rounded-none border-x-0 border-t-0 pl-4 pr-2 lg:hidden">
       <Logo compact href="/matches" />
-      <Link href="/cards" aria-label="Add card" className="grid size-11 place-items-center rounded-full bg-pear text-pear-ink">
-        <Plus size={20} weight="bold" aria-hidden />
-      </Link>
+      <div className="flex items-center">
+        <BadgeIcon href="/messages" label="Messages" icon={ChatCircle} n={badges.messages} />
+        <BadgeIcon href="/notifications" label="Notifications" icon={Bell} n={badges.notifications} />
+        <Link href="/profile" aria-label="Profile" className="grid size-11 place-items-center">
+          <Avatar seed={userId} size={30} />
+        </Link>
+      </div>
     </div>
   );
 }
 
-export function MobileNav({ matchCount }: { matchCount: number }) {
+export function MobileNav({ badges }: { badges: NavBadges }) {
+  const matchCount = badges.matches;
   const isActive = useActive();
   const items: (Item & { href: string })[] = [
     { href: "/cards", label: "Discover", icon: Compass },
     { href: "/collection", label: "Collection", icon: Books },
     { href: "/matches", label: "Matches", icon: Sparkle },
     { href: "/wants", label: "Wants", icon: Heart },
-    { href: "/profile", label: "Profile", icon: UserCircle },
+    { href: "/trades", label: "Trades", icon: ArrowsLeftRight, badge: count(badges.trades) },
   ];
 
   return (
@@ -205,7 +234,10 @@ export function MobileNav({ matchCount }: { matchCount: number }) {
             aria-current={active ? "page" : undefined}
             className={cx("flex min-h-12 flex-col items-center justify-center gap-1", active ? "text-fg" : "text-muted")}
           >
-            <Icon size={22} weight={active ? "fill" : "regular"} className={active ? "text-pear" : undefined} aria-hidden />
+            <span className="relative">
+              <Icon size={22} weight={active ? "fill" : "regular"} className={active ? "text-pear" : undefined} aria-hidden />
+              {item.badge && <span className="absolute -right-1.5 -top-1 size-2.5 rounded-full bg-pear ring-2 ring-night" aria-label={`${item.badge} need you`} />}
+            </span>
             <span className="text-[11px] font-medium">{item.label}</span>
           </Link>
         );

@@ -27,3 +27,7 @@ export function satisfiesCondition(have: string, want: string) {
   if (haveRank === undefined || wantRank === undefined) return false;
   return haveRank <= wantRank;
 }
+
+export function conditionLabel(value: string | null | undefined) {
+  return CONDITION_OPTIONS.find((o) => o.value === value)?.label ?? null;
+}

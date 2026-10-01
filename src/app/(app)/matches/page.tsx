@@ -3,6 +3,7 @@ import type { MatchedCard } from "@/lib/matching";
 import { EmptyState } from "@/components/EmptyState";
 import { Pocket } from "@/components/Pocket";
 import { MatchCard, type MatchCardSide } from "@/components/MatchCard";
+import { getTradingRecords } from "@/lib/trust";
 import { ContactReveal } from "./ContactReveal";
 
 type MatchRow = {
@@ -50,7 +51,7 @@ export default async function MatchesPage() {
     m.matched_cards.forEach((c) => cardIds.add(c.card_id)),
   );
 
-  const [{ data: counterparts }, { data: cards }] = await Promise.all([
+  const [{ data: counterparts }, { data: cards }, records] = await Promise.all([
     counterpartIds.length
       ? supabase
           .from("users")
@@ -63,6 +64,7 @@ export default async function MatchesPage() {
           .select("id, name, set_name, card_number, image_url, language")
           .in("id", Array.from(cardIds))
       : Promise.resolve({ data: [] }),
+    getTradingRecords(counterpartIds),
   ]);
 
   const counterpartById = new Map(
@@ -120,6 +122,8 @@ export default async function MatchesPage() {
         counterpartVerified={counterpart?.verified ?? false}
         counterpartLocation={counterpart?.location ?? null}
         featured={i === 0}
+        verifiedTrades={records.get(counterpartId)?.verifiedTrades ?? 0}
+        trustedTrader={records.get(counterpartId)?.trustedTrader ?? false}
         action={<ContactReveal matchId={m.id} />}
       />
     );
