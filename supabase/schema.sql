@@ -213,3 +213,9 @@ alter table public.wants
 -- revoke is PUBLIC's, which also covers anon and authenticated. Idempotent:
 -- revoking a privilege that isn't held is a no-op.
 revoke execute on function public.handle_new_user() from public;
+
+-- Migration: cards.language. Japanese printings are their own catalogue
+-- cards (TCGdex /v2/ja), stored with a "ja:" id prefix so they never collide
+-- with English ids. Because a printing is its own card, collection, wants
+-- and matching are language-exact with no extra columns. Idempotent.
+alter table public.cards add column if not exists language text not null default 'en';

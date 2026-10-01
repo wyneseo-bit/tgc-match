@@ -10,6 +10,7 @@ export type ProfileCardItem = {
   setName: string;
   cardNumber: string;
   imageUrl: string | null;
+  language?: string | null;
   statusLabel: string;
   /** Binder-divider tab on the pocket, for cards visible to matches. */
   tab?: string;
@@ -48,7 +49,13 @@ export function ProfileTabs({
       ) : (
         <div className="mt-6 grid grid-cols-3 gap-x-3 gap-y-5 rounded-lg bg-page p-4 ring-1 ring-inset ring-line sm:grid-cols-4 md:p-6 lg:grid-cols-6">
           {items.map((item) => {
-            const card = { name: item.name, set_name: item.setName, card_number: item.cardNumber, image_url: item.imageUrl };
+            const card = {
+              name: item.name,
+              set_name: item.setName,
+              card_number: item.cardNumber,
+              image_url: item.imageUrl,
+              language: item.language,
+            };
             return (
               <div key={item.id} className="min-w-0">
                 {tab === "wants" ? <EmptySlot card={card} /> : <PocketSlot card={card} tab={item.tab} />}

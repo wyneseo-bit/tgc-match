@@ -11,13 +11,13 @@ export const metadata = { title: "Profile" };
 type CollectionRow = {
   id: string;
   trade_status: "keep" | "maybe" | "available" | "for_sale";
-  card: { name: string; set_name: string; card_number: string; image_url: string | null } | null;
+  card: { name: string; set_name: string; card_number: string; image_url: string | null; language?: string | null } | null;
 };
 
 type WantRow = {
   id: string;
   priority: "low" | "medium" | "high";
-  card: { name: string; set_name: string; card_number: string; image_url: string | null } | null;
+  card: { name: string; set_name: string; card_number: string; image_url: string | null; language?: string | null } | null;
 };
 
 const TRADE_STATUS_LABEL: Record<CollectionRow["trade_status"], string> = {
@@ -55,13 +55,13 @@ export default async function ProfilePage() {
       .single(),
     supabase
       .from("collection")
-      .select("id, trade_status, card:cards(name, set_name, card_number, image_url)")
+      .select("id, trade_status, card:cards(name, set_name, card_number, image_url, language)")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .returns<CollectionRow[]>(),
     supabase
       .from("wants")
-      .select("id, priority, card:cards(name, set_name, card_number, image_url)")
+      .select("id, priority, card:cards(name, set_name, card_number, image_url, language)")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .returns<WantRow[]>(),
@@ -73,6 +73,7 @@ export default async function ProfilePage() {
     setName: row.card?.set_name ?? "",
     cardNumber: row.card?.card_number ?? "",
     imageUrl: row.card?.image_url ?? null,
+    language: row.card?.language ?? null,
     statusLabel: TRADE_STATUS_LABEL[row.trade_status],
     tab: TRADE_STATUS_TAB[row.trade_status],
   });
@@ -87,6 +88,7 @@ export default async function ProfilePage() {
     setName: row.card?.set_name ?? "",
     cardNumber: row.card?.card_number ?? "",
     imageUrl: row.card?.image_url ?? null,
+    language: row.card?.language ?? null,
     statusLabel: PRIORITY_LABEL[row.priority],
   }));
 

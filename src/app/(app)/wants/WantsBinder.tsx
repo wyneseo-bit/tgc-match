@@ -15,6 +15,7 @@ type Card = {
   set_name: string;
   card_number: string;
   image_url: string | null;
+  language?: string | null;
 };
 
 type Priority = "low" | "medium" | "high";

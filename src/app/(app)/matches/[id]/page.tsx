@@ -27,6 +27,7 @@ type CardInfo = {
   set_name: string;
   card_number: string;
   image_url: string | null;
+  language?: string | null;
 };
 
 function timeAgo(iso: string, now: number) {
@@ -83,7 +84,7 @@ export default async function MatchDetailPage({
     cardIds.length
       ? supabase
           .from("cards")
-          .select("id, name, set_name, card_number, image_url")
+          .select("id, name, set_name, card_number, image_url, language")
           .in("id", cardIds)
       : Promise.resolve({ data: [] }),
   ]);

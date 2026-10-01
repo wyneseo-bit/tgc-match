@@ -8,7 +8,7 @@ import { ButtonLink, IdentityBadge } from "@/components/ui";
 
 export const metadata = { title: "Collector" };
 
-type CardInfo = { id: string; name: string; set_name: string; card_number: string; image_url: string | null };
+type CardInfo = { id: string; name: string; set_name: string; card_number: string; image_url: string | null; language?: string | null };
 type HaveRow = { id: string; trade_status: "available" | "for_sale"; card: CardInfo };
 type WantRow = { id: string; card: CardInfo };
 
@@ -40,14 +40,14 @@ export default async function CollectorPage({ params }: { params: Promise<{ id: 
       // RLS only exposes other collectors' available / for-sale cards.
       supabase
         .from("collection")
-        .select("id, trade_status, card:cards(id, name, set_name, card_number, image_url)")
+        .select("id, trade_status, card:cards(id, name, set_name, card_number, image_url, language)")
         .eq("user_id", id)
         .in("trade_status", ["available", "for_sale"])
         .order("created_at", { ascending: false })
         .returns<HaveRow[]>(),
       supabase
         .from("wants")
-        .select("id, card:cards(id, name, set_name, card_number, image_url)")
+        .select("id, card:cards(id, name, set_name, card_number, image_url, language)")
         .eq("user_id", id)
         .order("created_at", { ascending: false })
         .returns<WantRow[]>(),

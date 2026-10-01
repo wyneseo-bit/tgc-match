@@ -9,6 +9,7 @@ export type MatchCardSide = {
   setName: string;
   cardNumber: string;
   imageUrl: string | null;
+  language?: string | null;
 };
 
 /** Up to three cards fanned out; the rest are counted in the caption. */
@@ -22,7 +23,7 @@ function Fan({ cards, align }: { cards: MatchCardSide[]; align: "left" | "right"
           className={cx("w-[78%] max-w-[150px] shrink-0", i > 0 && "-ml-[52%] mt-3")}
           style={{ zIndex: shown.length - i }}
         >
-          <TcgCard card={{ name: c.name, set_name: c.setName, card_number: c.cardNumber, image_url: c.imageUrl }} />
+          <TcgCard card={{ name: c.name, set_name: c.setName, card_number: c.cardNumber, image_url: c.imageUrl, language: c.language }} />
         </div>
       ))}
     </div>

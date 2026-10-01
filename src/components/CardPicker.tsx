@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { TcgCard } from "./Card";
+import { Pills } from "./Pills";
 import { Pocket } from "./Pocket";
 import { cx, fieldClass } from "./ui";
 
@@ -12,6 +13,7 @@ export type PickerCard = {
   set_name: string;
   card_number: string;
   image_url: string | null;
+  language?: string | null;
 };
 
 const DEBOUNCE_MS = 300;
@@ -37,6 +39,8 @@ export function CardPicker({
   const [status, setStatus] = useState<"loading" | "idle" | "error">("loading");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inflight = useRef<AbortController | null>(null);
+  const [lang, setLang] = useState<"en" | "ja">("en");
+  const langRef = useRef<"en" | "ja">("en");
 
   function load(text: string) {
     inflight.current?.abort();
@@ -45,8 +49,8 @@ export function CardPicker({
     setStatus("loading");
     const url =
       text.trim().length >= MIN_QUERY_LENGTH
-        ? `/api/cards/search?q=${encodeURIComponent(text.trim())}`
-        : "/api/cards/popular";
+        ? `/api/cards/search?q=${encodeURIComponent(text.trim())}&lang=${langRef.current}`
+        : `/api/cards/popular?lang=${langRef.current}`;
     fetch(url, { signal: controller.signal })
       .then(async (res) => {
         const json = await res.json();
@@ -91,6 +95,22 @@ export function CardPicker({
           placeholder='Card name, set or number, e.g. "charizard 4"'
           autoComplete="off"
           className={fieldClass(false, "pl-12")}
+        />
+      </div>
+
+      <div className="mt-3">
+        <Pills
+          label="Card language"
+          value={lang}
+          onChange={(next) => {
+            langRef.current = next;
+            setLang(next);
+            load(query);
+          }}
+          options={[
+            { value: "en", label: "English" },
+            { value: "ja", label: "Japanese" },
+          ]}
         />
       </div>
 

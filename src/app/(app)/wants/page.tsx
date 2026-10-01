@@ -23,7 +23,7 @@ export default async function WantsPage() {
     supabase
       .from("wants")
       .select(
-        "id, priority, condition, card:cards(id, name, set_name, card_number, image_url)",
+        "id, priority, condition, card:cards(id, name, set_name, card_number, image_url, language)",
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
