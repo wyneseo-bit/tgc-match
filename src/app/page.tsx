@@ -163,6 +163,7 @@ export default async function Home() {
               counterpartVerified
               counterpartLocation={DEMO_COLLECTOR.location}
               featured
+              linkProfile={false}
             />
           </Reveal>
         </div>

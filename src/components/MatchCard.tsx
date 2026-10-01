@@ -49,6 +49,7 @@ export function MatchCard({
   featured,
   action,
   href,
+  linkProfile = true,
 }: {
   id: string;
   score: number;
@@ -63,6 +64,8 @@ export function MatchCard({
   action?: React.ReactNode;
   /** Where "View match" goes. Defaults to the match detail page. */
   href?: string;
+  /** Link the collector's name to their profile. Off for demo tiles. */
+  linkProfile?: boolean;
 }) {
   return (
     <article
@@ -100,7 +103,13 @@ export function MatchCard({
       <div className="mt-5 flex items-center gap-3 border-t border-line pt-4">
         <Avatar seed={counterpartId} verified={counterpartVerified} size={40} />
         <div className="min-w-0 flex-1 text-sm">
-          <div className="truncate font-medium text-fg">{counterpartName}</div>
+          {linkProfile ? (
+            <Link href={`/collectors/${counterpartId}`} className="block truncate font-medium text-fg hover:underline">
+              {counterpartName}
+            </Link>
+          ) : (
+            <div className="truncate font-medium text-fg">{counterpartName}</div>
+          )}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-muted">
             {counterpartVerified ? (
               <span className="inline-flex items-center gap-1 text-seal">
