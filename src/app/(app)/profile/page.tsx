@@ -1,10 +1,14 @@
+import Link from "next/link";
 import { CalendarBlank, MapPin, PencilSimple, SignOut } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
 import { Pocket } from "@/components/Pocket";
 import { sleeveFor } from "@/components/Collector";
 import { ProfileTabs, type ProfileCardItem } from "@/components/ProfileTabs";
-import { ButtonLink, buttonClass, IdentityBadge } from "@/components/ui";
+import { LocalTime } from "@/components/LocalTime";
+import { TradingRecordSection } from "@/components/TrustPanel";
+import { ButtonLink, buttonClass, IdentityBadge, TrustChip } from "@/components/ui";
+import { getTradingRecord } from "@/lib/trust";
 
 export const metadata = { title: "Profile" };
 
@@ -47,7 +51,7 @@ export default async function ProfilePage() {
 
   if (!user) return null;
 
-  const [{ data: profile }, { data: collection }, { data: wants }] = await Promise.all([
+  const [{ data: profile }, { data: collection }, { data: wants }, record, { data: recentTrades }] = await Promise.all([
     supabase
       .from("users")
       .select("display_name, location, verified, created_at")
@@ -65,6 +69,14 @@ export default async function ProfilePage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .returns<WantRow[]>(),
+    getTradingRecord(user.id),
+    // RLS: only the caller's own trades.
+    supabase
+      .from("trades")
+      .select("id, code, completed_at")
+      .eq("status", "completed")
+      .order("completed_at", { ascending: false })
+      .limit(4),
   ]);
 
   const toCollectionItem = (row: CollectionRow): ProfileCardItem => ({
@@ -113,8 +125,9 @@ export default async function ProfilePage() {
             <div className="min-w-0">
               <h1 className="truncate font-display text-3xl font-bold tracking-tight md:text-4xl">{displayName}</h1>
               {user.email && <div className="mt-0.5 truncate text-muted">{user.email}</div>}
-              <div className="mt-3">
-                <IdentityBadge verified={profile?.verified ?? false} />
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <IdentityBadge verified={profile?.verified ?? false} className="mr-1" />
+                {record.trustedTrader && <TrustChip kind="trusted" />}
               </div>
             </div>
           </div>
@@ -163,11 +176,32 @@ export default async function ProfilePage() {
             </div>
           ))}
         </dl>
-        <p className="border-t border-line px-5 py-4 text-sm text-muted md:px-7">
-          Identity Verified means your identity was confirmed by our verification provider. It doesn&apos;t rate
-          trading behaviour or reputation.
-        </p>
       </section>
+
+      <div className="mt-6">
+        <TradingRecordSection record={record} whose="your" />
+      </div>
+
+      {recentTrades && recentTrades.length > 0 && (
+        <section aria-label="Recent verified trades" className="mt-10">
+          <h2 className="font-display text-xl font-semibold tracking-tight">Recent verified trades</h2>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {recentTrades.map((t) => (
+              <Link key={t.id} href={`/trades/${t.id}`} className="receipt block px-5 pb-5 pt-6 transition hover:-translate-y-0.5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-sm font-semibold">#{t.code}</span>
+                  {t.completed_at && (
+                    <span className="text-sm text-paper-muted">
+                      <LocalTime iso={t.completed_at} format="date" />
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 text-sm font-medium">View receipt</div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section aria-label="Cards" className="mt-10">
         <ProfileTabs available={availableItems} collection={collectionItems} wants={wantItems} />

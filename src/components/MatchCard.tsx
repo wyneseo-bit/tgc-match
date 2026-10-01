@@ -51,6 +51,8 @@ export function MatchCard({
   action,
   href,
   linkProfile = true,
+  verifiedTrades,
+  trustedTrader,
 }: {
   id: string;
   score: number;
@@ -67,6 +69,8 @@ export function MatchCard({
   href?: string;
   /** Link the collector's name to their profile. Off for demo tiles. */
   linkProfile?: boolean;
+  verifiedTrades?: number;
+  trustedTrader?: boolean;
 }) {
   return (
     <article
@@ -118,6 +122,12 @@ export function MatchCard({
               </span>
             ) : (
               <span>Not verified</span>
+            )}
+            {verifiedTrades !== undefined && (
+              <span>
+                {verifiedTrades} verified trade{verifiedTrades === 1 ? "" : "s"}
+                {trustedTrader && <span className="text-seal"> · Trusted Trader</span>}
+              </span>
             )}
             {counterpartLocation && (
               <span className="inline-flex items-center gap-1">
